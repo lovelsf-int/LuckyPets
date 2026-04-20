@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LuckyPets</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar" aria-label="LuckyPets">
+        <a class="brand" href="#" aria-label="LuckyPets 首页">
+          <span class="brand-mark">LP</span>
+          <span>LuckyPets</span>
+        </a>
+        <nav class="top-actions" aria-label="主导航">
+          <button class="nav-pill is-active" type="button">匹配</button>
+          <button class="nav-pill" type="button">消息</button>
+          <button class="nav-pill" type="button">我的宠物</button>
+        </nav>
+      </header>
+
+      <main class="match-layout">
+        <aside class="sidebar" aria-label="筛选条件">
+          <section class="owner-panel">
+            <p class="eyebrow">当前身份</p>
+            <div class="mini-profile">
+              <img
+                src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=360&q=80"
+                alt="两只户外玩耍的狗"
+              />
+              <div>
+                <h1>奶盖的家长</h1>
+                <p>上海 · 金毛 · 2 岁</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="filter-group" aria-label="匹配目的">
+            <p class="eyebrow">匹配目的</p>
+            <div class="segmented" role="group" aria-label="匹配目的">
+              <button class="segment is-active" type="button" data-intent="all">全部</button>
+              <button class="segment" type="button" data-intent="social">交友</button>
+              <button class="segment" type="button" data-intent="playdate">玩伴</button>
+              <button class="segment" type="button" data-intent="breeding">繁育</button>
+            </div>
+          </section>
+
+          <section class="filter-group" aria-label="宠物类型">
+            <p class="eyebrow">宠物类型</p>
+            <div class="chip-list" role="group" aria-label="宠物类型">
+              <button class="chip is-active" type="button" data-species="all">全部</button>
+              <button class="chip" type="button" data-species="dog">狗狗</button>
+              <button class="chip" type="button" data-species="cat">猫咪</button>
+              <button class="chip" type="button" data-species="rabbit">兔兔</button>
+            </div>
+          </section>
+
+          <section class="safety-panel" aria-label="繁育安全">
+            <p class="eyebrow">繁育准入</p>
+            <ul>
+              <li>疫苗记录已上传</li>
+              <li>年龄与体况达标</li>
+              <li>基因筛查可核验</li>
+              <li>家长同意福利条款</li>
+            </ul>
+          </section>
+        </aside>
+
+        <section class="swipe-stage" aria-live="polite">
+          <div class="status-row">
+            <div>
+              <p class="eyebrow">今日推荐</p>
+              <h2 id="queueTitle">适合奶盖的新朋友</h2>
+            </div>
+            <p class="queue-count" id="queueCount">0 / 0</p>
+          </div>
+
+          <article class="pet-card" id="petCard">
+            <div class="photo-frame">
+              <img id="petPhoto" src="" alt="" />
+              <div class="intent-badge" id="petIntent">交友</div>
+            </div>
+            <div class="pet-body">
+              <div class="pet-heading">
+                <div>
+                  <h3 id="petName">加载中</h3>
+                  <p id="petMeta">城市 · 年龄</p>
+                </div>
+                <strong id="petScore">0%</strong>
+              </div>
+              <p class="pet-bio" id="petBio"></p>
+              <div class="trait-row" id="petTraits"></div>
+              <div class="health-row" id="petHealth"></div>
+            </div>
+          </article>
+
+          <div class="swipe-actions" role="group" aria-label="匹配操作">
+            <button class="action-btn pass" type="button" id="passBtn" aria-label="跳过">跳过</button>
+            <button class="action-btn info" type="button" id="detailsBtn" aria-label="查看守则">守则</button>
+            <button class="action-btn like" type="button" id="likeBtn" aria-label="喜欢">喜欢</button>
+          </div>
+        </section>
+
+        <aside class="activity-panel" aria-label="匹配动态">
+          <section>
+            <p class="eyebrow">新配对</p>
+            <div class="match-list" id="matchList"></div>
+          </section>
+
+          <section class="chat-preview">
+            <p class="eyebrow">第一句</p>
+            <h2>先确认宠物状态，再约见面。</h2>
+            <p>“奶盖平时喜欢安静散步，我们可以先约一段短时间的公园同行。”</p>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <dialog class="match-modal" id="matchModal" aria-labelledby="matchTitle">
+      <div class="modal-content">
+        <p class="eyebrow">配对成功</p>
+        <h2 id="matchTitle">你们互相喜欢</h2>
+        <p id="matchCopy"></p>
+        <div class="modal-actions">
+          <button class="nav-pill" type="button" id="closeModal">继续浏览</button>
+          <button class="nav-pill is-active" type="button">发起聊天</button>
+        </div>
+      </div>
+    </dialog>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
