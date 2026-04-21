@@ -2,6 +2,13 @@
 node_modules/
 dist/
 build/
+.expo/
+.expo-shared/
+ios/
+android/
+*.ipa
+*.apk
+*.aab
 .env
 .env.*
 !.env.example

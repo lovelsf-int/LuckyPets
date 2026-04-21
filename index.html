@@ -14,24 +14,25 @@
           <span>LuckyPets</span>
         </a>
         <nav class="top-actions" aria-label="主导航">
-          <button class="nav-pill is-active" type="button">匹配</button>
-          <button class="nav-pill" type="button">消息</button>
-          <button class="nav-pill" type="button">我的宠物</button>
+          <button class="nav-pill is-active" type="button" data-view="match">匹配</button>
+          <button class="nav-pill" type="button" data-view="messages">消息</button>
+          <button class="nav-pill" type="button" data-view="profile">我的宠物</button>
         </nav>
       </header>
 
-      <main class="match-layout">
+      <main class="match-layout view-panel is-active" id="matchView">
         <aside class="sidebar" aria-label="筛选条件">
           <section class="owner-panel">
             <p class="eyebrow">当前身份</p>
             <div class="mini-profile">
               <img
+                id="ownerAvatar"
                 src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=360&q=80"
                 alt="两只户外玩耍的狗"
               />
               <div>
-                <h1>奶盖的家长</h1>
-                <p>上海 · 金毛 · 2 岁</p>
+                <h1 id="ownerTitle">奶盖的家长</h1>
+                <p id="ownerMeta">上海 · 金毛 · 2 岁</p>
               </div>
             </div>
           </section>
@@ -115,6 +116,69 @@
           </section>
         </aside>
       </main>
+
+      <main class="app-section view-panel" id="messagesView" hidden>
+        <section class="section-heading">
+          <p class="eyebrow">消息</p>
+          <h2>先确认边界，再安排见面。</h2>
+        </section>
+
+        <section class="messages-layout">
+          <div class="conversation-list" id="conversationList"></div>
+          <article class="chat-surface" id="chatSurface"></article>
+        </section>
+      </main>
+
+      <main class="app-section view-panel" id="profileView" hidden>
+        <section class="section-heading">
+          <p class="eyebrow">我的宠物</p>
+          <h2>资料越清楚，匹配越安全。</h2>
+        </section>
+
+        <section class="profile-grid">
+          <form class="profile-form" id="profileForm">
+            <label>
+              宠物昵称
+              <input id="profileName" name="name" autocomplete="off" />
+            </label>
+            <label>
+              城市区域
+              <input id="profileCity" name="city" autocomplete="off" />
+            </label>
+            <label>
+              品种
+              <input id="profileBreed" name="breed" autocomplete="off" />
+            </label>
+            <label>
+              年龄
+              <input id="profileAge" name="age" autocomplete="off" />
+            </label>
+            <label>
+              主要目的
+              <select id="profileIntent" name="intent">
+                <option value="交友">交友</option>
+                <option value="玩伴">玩伴</option>
+                <option value="繁育前咨询">繁育前咨询</option>
+              </select>
+            </label>
+            <label>
+              见面边界
+              <textarea id="profileNote" name="note" rows="4"></textarea>
+            </label>
+            <button class="action-btn like" type="submit">保存</button>
+          </form>
+
+          <aside class="profile-summary">
+            <p class="eyebrow">健康认证</p>
+            <ul>
+              <li>疫苗记录：已上传</li>
+              <li>驱虫记录：已上传</li>
+              <li>绝育状态：可选择展示</li>
+              <li>繁育沟通：需补充基因筛查</li>
+            </ul>
+          </aside>
+        </section>
+      </main>
     </div>
 
     <dialog class="match-modal" id="matchModal" aria-labelledby="matchTitle">
@@ -124,7 +188,7 @@
         <p id="matchCopy"></p>
         <div class="modal-actions">
           <button class="nav-pill" type="button" id="closeModal">继续浏览</button>
-          <button class="nav-pill is-active" type="button">发起聊天</button>
+          <button class="nav-pill is-active" type="button" id="startChat">发起聊天</button>
         </div>
       </div>
     </dialog>

@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "LuckyPets",
+    "slug": "luckypets",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "luckypets",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lovelsf.luckypets"
+    },
+    "android": {
+      "package": "com.lovelsf.luckypets",
+      "edgeToEdgeEnabled": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "replace-after-eas-init"
+      }
+    }
+  }
+}

@@ -116,6 +116,23 @@ button {
   margin: 0 auto;
 }
 
+.view-panel[hidden] {
+  display: none;
+}
+
+.app-section {
+  display: grid;
+  gap: 18px;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.15;
+}
+
 .sidebar,
 .activity-panel {
   display: grid;
@@ -359,6 +376,11 @@ button {
   grid-template-columns: 48px 1fr;
   gap: 10px;
   align-items: center;
+  width: 100%;
+  border: 0;
+  color: var(--ink);
+  background: transparent;
+  text-align: left;
 }
 
 .match-item img {
@@ -369,14 +391,206 @@ button {
 }
 
 .match-item strong,
-.match-item p {
+.match-item span {
   display: block;
   margin: 0;
 }
 
-.match-item p {
+.match-item span span {
   color: var(--muted);
   font-size: 14px;
+}
+
+.messages-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: 18px;
+}
+
+.conversation-list,
+.chat-surface,
+.profile-form,
+.profile-summary {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 8px 28px rgba(23, 32, 29, 0.06);
+}
+
+.conversation-list {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 520px;
+  padding: 12px;
+}
+
+.conversation-btn {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  min-height: 70px;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--ink);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.conversation-btn.is-active {
+  border-color: #9ed8d2;
+  background: var(--teal-soft);
+}
+
+.conversation-btn img,
+.chat-header img {
+  width: 54px;
+  height: 54px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.conversation-btn strong,
+.conversation-btn span {
+  display: block;
+}
+
+.conversation-btn span span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.chat-surface {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 520px;
+  overflow: hidden;
+}
+
+.chat-header {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.chat-header h3 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.message-stack {
+  display: grid;
+  align-content: end;
+  gap: 10px;
+  padding: 18px;
+}
+
+.message-row {
+  max-width: 74%;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+.message-row.inbound {
+  justify-self: start;
+  background: #edf2f0;
+}
+
+.message-row.outbound {
+  justify-self: end;
+  color: #ffffff;
+  background: var(--teal);
+}
+
+.message-row.system {
+  justify-self: center;
+  max-width: 88%;
+  color: var(--muted);
+  background: #f1f4f2;
+  text-align: center;
+}
+
+.composer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.composer input,
+.profile-form input,
+.profile-form select,
+.profile-form textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: #ffffff;
+}
+
+.composer input {
+  min-height: 40px;
+  padding: 0 12px;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(240px, 320px);
+  gap: 18px;
+  align-items: start;
+}
+
+.profile-form {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.profile-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.profile-form input,
+.profile-form select,
+.profile-form textarea {
+  min-height: 42px;
+  padding: 10px 12px;
+  font-weight: 500;
+}
+
+.profile-form textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.profile-summary {
+  padding: 18px;
+}
+
+.profile-summary ul {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.profile-summary li {
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .empty-state {
@@ -427,6 +641,15 @@ button {
     grid-column: 1 / -1;
     grid-template-columns: 1fr 1fr;
   }
+
+  .messages-layout,
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .conversation-list {
+    min-height: auto;
+  }
 }
 
 @media (max-width: 760px) {
@@ -468,5 +691,26 @@ button {
   .action-btn {
     flex: 1;
     min-width: 94px;
+  }
+
+  .section-heading h2 {
+    font-size: 26px;
+  }
+
+  .messages-layout,
+  .profile-grid {
+    gap: 14px;
+  }
+
+  .chat-surface {
+    min-height: 460px;
+  }
+
+  .message-row {
+    max-width: 88%;
+  }
+
+  .composer {
+    grid-template-columns: 1fr;
   }
 }

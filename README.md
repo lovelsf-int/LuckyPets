@@ -16,9 +16,28 @@ The first version focuses on a Tinder-like matching loop:
 
 Breeding matches should never be treated like casual swipes. The product should require proof of health records, age eligibility, owner identity, animal welfare agreement, and local-law compliance before breeding conversations can start.
 
-## Prototype
+## Static Prototype
 
 Open `index.html` in a browser to try the static MVP prototype. No build step is required.
+
+## Mobile App
+
+The repository now includes the start of an Expo/React Native app for iOS and Android.
+
+Install dependencies after cloning:
+
+```bash
+npm install
+```
+
+Run locally:
+
+```bash
+npm run ios
+npm run android
+```
+
+The app entry is `App.tsx`. Store build configuration starts in `app.json` and `eas.json`.
 
 ## Next Build Steps
 

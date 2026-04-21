@@ -15,6 +15,8 @@ LuckyPets should feel like a pet-first matching app, not a classified ads board.
 
 ## Phase 1
 
+- Expo mobile app shell for iOS and Android.
+- Native tab flow for matching, messages, and pet profile.
 - Owner account registration.
 - Pet profile CRUD.
 - Photo upload.
