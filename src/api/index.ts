@@ -1,5 +1,7 @@
 export type {
+  AccountDeletionRequest,
   ApiClient,
+  AuthRequest,
   AuthSession,
   BreedingEligibility,
   ChatMessage,

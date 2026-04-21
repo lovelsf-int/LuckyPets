@@ -1,7 +1,9 @@
 import { pets } from "../data/pets";
 import type { OwnerPetProfile, Pet } from "../types";
 import type {
+  AccountDeletionRequest,
   ApiClient,
+  AuthRequest,
   AuthSession,
   BreedingEligibility,
   ChatMessage,
@@ -19,11 +21,17 @@ const defaultProfile: OwnerPetProfile = {
 };
 
 const mockState = {
+  session: {
+    userId: "owner-demo-1",
+    displayName: "奶盖的家长",
+    activePetId: "pet-demo-naigai",
+  } as AuthSession | null,
   profile: defaultProfile,
   matches: [] as string[],
   passed: [] as string[],
   reports: [] as CreateReportRequest[],
   blockedOwners: [] as string[],
+  deletionRequests: [] as AccountDeletionRequest[],
 };
 
 function wait<T>(value: T): Promise<T> {
@@ -35,12 +43,36 @@ function matchPetsByName(names: string[]): Pet[] {
 }
 
 export const mockApiClient: ApiClient = {
-  getSession(): Promise<AuthSession> {
-    return wait({
+  getSession(): Promise<AuthSession | null> {
+    return wait(mockState.session);
+  },
+
+  signIn(request: AuthRequest): Promise<AuthSession> {
+    mockState.session = {
       userId: "owner-demo-1",
-      displayName: "奶盖的家长",
+      displayName: request.displayName || "奶盖的家长",
       activePetId: "pet-demo-naigai",
-    });
+    };
+    return wait(mockState.session);
+  },
+
+  createAccount(request: AuthRequest): Promise<AuthSession> {
+    mockState.session = {
+      userId: "owner-demo-1",
+      displayName: request.displayName || "奶盖的家长",
+      activePetId: "pet-demo-naigai",
+    };
+    return wait(mockState.session);
+  },
+
+  signOut(): Promise<void> {
+    mockState.session = null;
+    return wait(undefined);
+  },
+
+  requestAccountDeletion(request: AccountDeletionRequest): Promise<void> {
+    mockState.deletionRequests.push(request);
+    return wait(undefined);
   },
 
   getOwnerProfile(): Promise<OwnerPetProfile> {

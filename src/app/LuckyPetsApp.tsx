@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { AuthScreen } from "../features/auth/AuthScreen";
 import { MatchScreen } from "../features/matching/MatchScreen";
 import { MessagesScreen } from "../features/messages/MessagesScreen";
 import { ProfileScreen } from "../features/profile/ProfileScreen";
@@ -33,20 +34,29 @@ export function LuckyPetsApp() {
       </View>
 
       <View style={styles.tabs}>
-        {tabs.map(([key, label]) => (
-          <Pressable
-            key={key}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: state.tab === key }}
-            style={[styles.tabButton, state.tab === key && styles.tabButtonActive]}
-            onPress={() => state.setTab(key)}
-          >
-            <Text style={[styles.tabText, state.tab === key && styles.tabTextActive]}>{label}</Text>
-          </Pressable>
-        ))}
+        {state.session
+          ? tabs.map(([key, label]) => (
+              <Pressable
+                key={key}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: state.tab === key }}
+                style={[styles.tabButton, state.tab === key && styles.tabButtonActive]}
+                onPress={() => state.setTab(key)}
+              >
+                <Text style={[styles.tabText, state.tab === key && styles.tabTextActive]}>{label}</Text>
+              </Pressable>
+            ))
+          : null}
       </View>
 
-      {state.tab === "messages" ? (
+      {!state.session ? (
+        <AuthScreen
+          isLoading={state.isLoading}
+          errorMessage={state.errorMessage}
+          onSignIn={state.signIn}
+          onCreateAccount={state.createAccount}
+        />
+      ) : state.tab === "messages" ? (
         <MessagesScreen
           matches={state.matchedPets}
           selectedChat={state.selectedChat}
@@ -55,7 +65,14 @@ export function LuckyPetsApp() {
           onFindMatches={() => state.setTab("match")}
         />
       ) : state.tab === "profile" ? (
-        <ProfileScreen profile={state.profile} onChangeProfile={state.updateProfile} />
+        <ProfileScreen
+          session={state.session}
+          profile={state.profile}
+          errorMessage={state.errorMessage}
+          onChangeProfile={state.updateProfile}
+          onSignOut={state.signOut}
+          onRequestAccountDeletion={state.requestAccountDeletion}
+        />
       ) : (
         <MatchScreen
           profile={state.profile}

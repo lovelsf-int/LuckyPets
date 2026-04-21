@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { apiClient } from "../api";
+import type { AuthRequest, AuthSession } from "../api";
 import type { IntentFilter, OwnerPetProfile, Pet, SpeciesFilter, TabKey } from "../types";
 
 export const defaultProfile: OwnerPetProfile = {
@@ -12,6 +13,7 @@ export const defaultProfile: OwnerPetProfile = {
 };
 
 export function useLuckyPetsState() {
+  const [session, setSession] = useState<AuthSession | null>(null);
   const [tab, setTab] = useState<TabKey>("match");
   const [intent, setIntent] = useState<IntentFilter>("all");
   const [species, setSpecies] = useState<SpeciesFilter>("all");
@@ -32,7 +34,10 @@ export function useLuckyPetsState() {
       try {
         setIsLoading(true);
         setErrorMessage("");
-        await apiClient.getSession();
+        const nextSession = await apiClient.getSession();
+        if (!isActive) return;
+        setSession(nextSession);
+        if (!nextSession) return;
         const [nextProfile, nextMatches] = await Promise.all([
           apiClient.getOwnerProfile(),
           apiClient.listMatches(),
@@ -52,6 +57,58 @@ export function useLuckyPetsState() {
       isActive = false;
     };
   }, []);
+
+  async function signIn(request: AuthRequest) {
+    try {
+      setIsLoading(true);
+      setErrorMessage("");
+      const nextSession = await apiClient.signIn(request);
+      const [nextProfile, nextMatches] = await Promise.all([
+        apiClient.getOwnerProfile(),
+        apiClient.listMatches(),
+      ]);
+      setSession(nextSession);
+      setProfile(nextProfile);
+      setMatchedPets(nextMatches);
+      setTab("match");
+    } catch {
+      setErrorMessage("登录暂时没有成功，请稍后重试。");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function createAccount(request: AuthRequest) {
+    try {
+      setIsLoading(true);
+      setErrorMessage("");
+      const nextSession = await apiClient.createAccount(request);
+      setSession(nextSession);
+      setTab("profile");
+    } catch {
+      setErrorMessage("创建账号暂时没有成功，请稍后重试。");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function signOut() {
+    await apiClient.signOut();
+    setSession(null);
+    setTab("match");
+    setSelectedChat("");
+    setMatchedPets([]);
+  }
+
+  async function requestAccountDeletion(reason: string) {
+    try {
+      setErrorMessage("");
+      await apiClient.requestAccountDeletion({ reason });
+      await signOut();
+    } catch {
+      setErrorMessage("账号删除请求暂时没有提交成功，请稍后重试。");
+    }
+  }
 
   useEffect(() => {
     let isActive = true;
@@ -115,6 +172,7 @@ export function useLuckyPetsState() {
   }
 
   return {
+    session,
     tab,
     setTab,
     intent,
@@ -131,6 +189,10 @@ export function useLuckyPetsState() {
     updateProfile,
     isLoading,
     errorMessage,
+    signIn,
+    createAccount,
+    signOut,
+    requestAccountDeletion,
     moveNext,
     likeCurrentPet,
     openChat,

@@ -1,11 +1,13 @@
 import React from "react";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { AppButton } from "../../components/AppButton";
 import { ScreenHeading } from "../../components/ScreenHeading";
 import { SectionCard } from "../../components/SectionCard";
 import { screenStyles } from "../../components/screenStyles";
 import { colors, spacing } from "../../theme";
 import type { OwnerPetProfile } from "../../types";
+import type { AuthSession } from "../../api";
 
 const profileFields: Array<[keyof OwnerPetProfile, string, boolean]> = [
   ["name", "宠物昵称", false],
@@ -16,14 +18,38 @@ const profileFields: Array<[keyof OwnerPetProfile, string, boolean]> = [
 ];
 
 type ProfileScreenProps = {
+  session: AuthSession;
   profile: OwnerPetProfile;
+  errorMessage: string;
   onChangeProfile: (profile: OwnerPetProfile) => void;
+  onSignOut: () => void;
+  onRequestAccountDeletion: (reason: string) => void;
 };
 
-export function ProfileScreen({ profile, onChangeProfile }: ProfileScreenProps) {
+export function ProfileScreen({
+  session,
+  profile,
+  errorMessage,
+  onChangeProfile,
+  onSignOut,
+  onRequestAccountDeletion,
+}: ProfileScreenProps) {
   return (
     <ScrollView contentContainerStyle={screenStyles.scrollContent}>
       <ScreenHeading eyebrow="我的宠物" title="资料越清楚，匹配越安全。" />
+      <SectionCard>
+        <Text style={screenStyles.sectionTitle}>账号</Text>
+        <Text style={screenStyles.mutedCopy}>{session.displayName} · {session.userId}</Text>
+        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+        <View style={styles.actionRow}>
+          <AppButton label="退出登录" variant="quiet" onPress={onSignOut} />
+          <AppButton
+            label="请求删除账号"
+            variant="danger"
+            onPress={() => onRequestAccountDeletion("用户从我的宠物页发起账号删除请求")}
+          />
+        </View>
+      </SectionCard>
       {profileFields.map(([key, label, multiline]) => (
         <View key={key} style={styles.field}>
           <Text style={styles.fieldLabel}>{label}</Text>
@@ -64,5 +90,13 @@ const styles = StyleSheet.create({
     minHeight: 104,
     paddingTop: spacing[2],
     textAlignVertical: "top",
+  },
+  errorText: {
+    color: colors.danger,
+    lineHeight: 22,
+  },
+  actionRow: {
+    flexDirection: "row",
+    gap: spacing[2],
   },
 });

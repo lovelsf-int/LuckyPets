@@ -6,6 +6,15 @@ export type AuthSession = {
   activePetId: string;
 };
 
+export type AuthRequest = {
+  email: string;
+  displayName: string;
+};
+
+export type AccountDeletionRequest = {
+  reason: string;
+};
+
 export type SwipeQueueRequest = {
   intent: IntentFilter;
   species: SpeciesFilter;
@@ -51,7 +60,11 @@ export type BreedingEligibility = {
 };
 
 export type ApiClient = {
-  getSession: () => Promise<AuthSession>;
+  getSession: () => Promise<AuthSession | null>;
+  signIn: (request: AuthRequest) => Promise<AuthSession>;
+  createAccount: (request: AuthRequest) => Promise<AuthSession>;
+  signOut: () => Promise<void>;
+  requestAccountDeletion: (request: AccountDeletionRequest) => Promise<void>;
   getOwnerProfile: () => Promise<OwnerPetProfile>;
   updateOwnerProfile: (profile: OwnerPetProfile) => Promise<OwnerPetProfile>;
   listSwipeQueue: (request: SwipeQueueRequest) => Promise<Pet[]>;
