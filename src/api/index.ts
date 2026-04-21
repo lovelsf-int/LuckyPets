@@ -7,6 +7,7 @@ export type {
   ChatMessage,
   ConversationSummary,
   CreateReportRequest,
+  OwnerPetProfileInput,
   ReportCategory,
   ReviewStatus,
   SwipeQueueRequest,

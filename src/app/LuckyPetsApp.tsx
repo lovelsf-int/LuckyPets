@@ -67,9 +67,16 @@ export function LuckyPetsApp() {
       ) : state.tab === "profile" ? (
         <ProfileScreen
           session={state.session}
-          profile={state.profile}
+          activePetId={state.profile.id}
+          petProfiles={state.petProfiles}
+          draftProfile={state.draftProfile}
+          saveState={state.profileSaveState}
           errorMessage={state.errorMessage}
           onChangeProfile={state.updateProfile}
+          onSelectPet={state.selectPetProfile}
+          onStartNewPet={state.startNewPetProfile}
+          onSaveProfile={state.saveDraftProfile}
+          onDeleteProfile={state.deleteDraftProfile}
           onSignOut={state.signOut}
           onRequestAccountDeletion={state.requestAccountDeletion}
         />

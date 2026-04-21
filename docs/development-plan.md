@@ -30,7 +30,7 @@ Deliver an internal-test-ready iOS and Android MVP in 8 weeks. The MVP must supp
 
 ## Week 2 / 第 2 周：Account And Pet Profiles / 账号与宠物资料
 
-- Current progress: mobile auth gate, sign in/create account mock actions, sign out, account deletion request, and profile API boundary are in place.
+- Current progress: mobile auth gate, sign in/create account mock actions, sign out, account deletion request, pet profile list, editable draft, create/update/delete mock actions, and profile API boundary are in place.
 - Mobile: implement sign up, sign in, sign out, account deletion request, pet profile CRUD screens.
 - Backend: implement user, session, pet profile, and account deletion request endpoints.
 - Data: create initial tables for User, Pet, and audit timestamps.

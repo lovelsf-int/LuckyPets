@@ -15,6 +15,8 @@ export type AccountDeletionRequest = {
   reason: string;
 };
 
+export type OwnerPetProfileInput = Omit<OwnerPetProfile, "id">;
+
 export type SwipeQueueRequest = {
   intent: IntentFilter;
   species: SpeciesFilter;
@@ -65,8 +67,13 @@ export type ApiClient = {
   createAccount: (request: AuthRequest) => Promise<AuthSession>;
   signOut: () => Promise<void>;
   requestAccountDeletion: (request: AccountDeletionRequest) => Promise<void>;
+  listOwnerPets: () => Promise<OwnerPetProfile[]>;
   getOwnerProfile: () => Promise<OwnerPetProfile>;
   updateOwnerProfile: (profile: OwnerPetProfile) => Promise<OwnerPetProfile>;
+  createOwnerPet: (profile: OwnerPetProfileInput) => Promise<OwnerPetProfile>;
+  updateOwnerPet: (profile: OwnerPetProfile) => Promise<OwnerPetProfile>;
+  deleteOwnerPet: (petId: string) => Promise<OwnerPetProfile[]>;
+  setActivePet: (petId: string) => Promise<AuthSession>;
   listSwipeQueue: (request: SwipeQueueRequest) => Promise<Pet[]>;
   likePet: (petName: string) => Promise<Pet[]>;
   passPet: (petName: string) => Promise<void>;

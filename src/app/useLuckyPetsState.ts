@@ -5,12 +5,20 @@ import type { AuthRequest, AuthSession } from "../api";
 import type { IntentFilter, OwnerPetProfile, Pet, SpeciesFilter, TabKey } from "../types";
 
 export const defaultProfile: OwnerPetProfile = {
+  id: "pet-demo-naigai",
   name: "奶盖",
+  species: "dog",
   city: "上海",
   breed: "金毛",
   age: "2 岁",
+  sex: "female",
+  intent: "playdate",
   note: "第一次见面不脱牵引，先短时间公园同行。",
+  photoCount: 3,
+  healthStatus: "approved",
 };
+
+export type ProfileSaveState = "idle" | "dirty" | "saving" | "saved";
 
 export function useLuckyPetsState() {
   const [session, setSession] = useState<AuthSession | null>(null);
@@ -20,6 +28,9 @@ export function useLuckyPetsState() {
   const [index, setIndex] = useState(0);
   const [selectedChat, setSelectedChat] = useState("");
   const [profile, setProfile] = useState<OwnerPetProfile>(defaultProfile);
+  const [petProfiles, setPetProfiles] = useState<OwnerPetProfile[]>([defaultProfile]);
+  const [draftProfile, setDraftProfile] = useState<OwnerPetProfile>(defaultProfile);
+  const [profileSaveState, setProfileSaveState] = useState<ProfileSaveState>("idle");
   const [queue, setQueue] = useState<Pet[]>([]);
   const [matchedPets, setMatchedPets] = useState<Pet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,12 +49,15 @@ export function useLuckyPetsState() {
         if (!isActive) return;
         setSession(nextSession);
         if (!nextSession) return;
-        const [nextProfile, nextMatches] = await Promise.all([
+        const [nextProfiles, nextProfile, nextMatches] = await Promise.all([
+          apiClient.listOwnerPets(),
           apiClient.getOwnerProfile(),
           apiClient.listMatches(),
         ]);
         if (!isActive) return;
+        setPetProfiles(nextProfiles);
         setProfile(nextProfile);
+        setDraftProfile(nextProfile);
         setMatchedPets(nextMatches);
       } catch {
         if (isActive) setErrorMessage("暂时无法加载账号资料，请稍后重试。");
@@ -63,12 +77,15 @@ export function useLuckyPetsState() {
       setIsLoading(true);
       setErrorMessage("");
       const nextSession = await apiClient.signIn(request);
-      const [nextProfile, nextMatches] = await Promise.all([
+      const [nextProfiles, nextProfile, nextMatches] = await Promise.all([
+        apiClient.listOwnerPets(),
         apiClient.getOwnerProfile(),
         apiClient.listMatches(),
       ]);
       setSession(nextSession);
+      setPetProfiles(nextProfiles);
       setProfile(nextProfile);
+      setDraftProfile(nextProfile);
       setMatchedPets(nextMatches);
       setTab("match");
     } catch {
@@ -165,10 +182,89 @@ export function useLuckyPetsState() {
   }
 
   function updateProfile(nextProfile: OwnerPetProfile) {
+    setDraftProfile(nextProfile);
+    setProfileSaveState("dirty");
+  }
+
+  function selectPetProfile(petId: string) {
+    const nextProfile = petProfiles.find((pet) => pet.id === petId);
+    if (!nextProfile) return;
     setProfile(nextProfile);
-    apiClient.updateOwnerProfile(nextProfile).catch(() => {
-      setErrorMessage("资料暂时没有保存成功，请稍后重试。");
+    setDraftProfile(nextProfile);
+    setProfileSaveState("idle");
+    apiClient.setActivePet(petId).then(setSession).catch(() => {
+      setErrorMessage("当前宠物切换暂时没有同步成功，请稍后重试。");
     });
+  }
+
+  function startNewPetProfile() {
+    setDraftProfile({
+      id: "",
+      name: "新朋友",
+      species: "dog",
+      city: profile.city,
+      breed: "",
+      age: "",
+      sex: "unknown",
+      intent: "social",
+      note: "先从线上交流开始，确认边界后再安排见面。",
+      photoCount: 0,
+      healthStatus: "not_started",
+    });
+    setProfileSaveState("dirty");
+  }
+
+  async function saveDraftProfile() {
+    try {
+      setProfileSaveState("saving");
+      setErrorMessage("");
+      const savedProfile = draftProfile.id
+        ? await apiClient.updateOwnerPet(draftProfile)
+        : await apiClient.createOwnerPet({
+            name: draftProfile.name,
+            species: draftProfile.species,
+            city: draftProfile.city,
+            breed: draftProfile.breed,
+            age: draftProfile.age,
+            sex: draftProfile.sex,
+            intent: draftProfile.intent,
+            note: draftProfile.note,
+            photoCount: draftProfile.photoCount,
+            healthStatus: draftProfile.healthStatus,
+          });
+      const nextProfiles = await apiClient.listOwnerPets();
+      setPetProfiles(nextProfiles);
+      setProfile(savedProfile);
+      setDraftProfile(savedProfile);
+      setProfileSaveState("saved");
+      const nextSession = await apiClient.setActivePet(savedProfile.id);
+      setSession(nextSession);
+    } catch {
+      setProfileSaveState("dirty");
+      setErrorMessage("资料暂时没有保存成功，请稍后重试。");
+    }
+  }
+
+  async function deleteDraftProfile() {
+    if (!draftProfile.id) {
+      setDraftProfile(profile);
+      setProfileSaveState("idle");
+      return;
+    }
+
+    try {
+      setErrorMessage("");
+      const nextProfiles = await apiClient.deleteOwnerPet(draftProfile.id);
+      const nextProfile = nextProfiles[0] || profile;
+      setPetProfiles(nextProfiles);
+      setProfile(nextProfile);
+      setDraftProfile(nextProfile);
+      setProfileSaveState("idle");
+      const nextSession = await apiClient.setActivePet(nextProfile.id);
+      setSession(nextSession);
+    } catch {
+      setErrorMessage("宠物资料暂时没有删除成功，请稍后重试。");
+    }
   }
 
   return {
@@ -186,7 +282,14 @@ export function useLuckyPetsState() {
     selectedChat,
     setSelectedChat,
     profile,
+    petProfiles,
+    draftProfile,
+    profileSaveState,
     updateProfile,
+    selectPetProfile,
+    startNewPetProfile,
+    saveDraftProfile,
+    deleteDraftProfile,
     isLoading,
     errorMessage,
     signIn,

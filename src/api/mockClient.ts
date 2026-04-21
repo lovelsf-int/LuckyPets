@@ -9,15 +9,36 @@ import type {
   ChatMessage,
   ConversationSummary,
   CreateReportRequest,
+  OwnerPetProfileInput,
   SwipeQueueRequest,
 } from "./contracts";
 
 const defaultProfile: OwnerPetProfile = {
+  id: "pet-demo-naigai",
   name: "奶盖",
+  species: "dog",
   city: "上海",
   breed: "金毛",
   age: "2 岁",
+  sex: "female",
+  intent: "playdate",
   note: "第一次见面不脱牵引，先短时间公园同行。",
+  photoCount: 3,
+  healthStatus: "approved",
+};
+
+const secondProfile: OwnerPetProfile = {
+  id: "pet-demo-mitao",
+  name: "米桃",
+  species: "cat",
+  city: "上海",
+  breed: "英短",
+  age: "1 岁",
+  sex: "unknown",
+  intent: "social",
+  note: "先线上交流养猫经验，暂不线下合笼。",
+  photoCount: 1,
+  healthStatus: "pending",
 };
 
 const mockState = {
@@ -26,7 +47,7 @@ const mockState = {
     displayName: "奶盖的家长",
     activePetId: "pet-demo-naigai",
   } as AuthSession | null,
-  profile: defaultProfile,
+  ownerPets: [defaultProfile, secondProfile],
   matches: [] as string[],
   passed: [] as string[],
   reports: [] as CreateReportRequest[],
@@ -40,6 +61,11 @@ function wait<T>(value: T): Promise<T> {
 
 function matchPetsByName(names: string[]): Pet[] {
   return names.map((name) => pets.find((pet) => pet.name === name)).filter(Boolean) as Pet[];
+}
+
+function updateOwnerPetInState(profile: OwnerPetProfile): OwnerPetProfile {
+  mockState.ownerPets = mockState.ownerPets.map((pet) => (pet.id === profile.id ? profile : pet));
+  return profile;
 }
 
 export const mockApiClient: ApiClient = {
@@ -75,13 +101,66 @@ export const mockApiClient: ApiClient = {
     return wait(undefined);
   },
 
+  listOwnerPets(): Promise<OwnerPetProfile[]> {
+    return wait(mockState.ownerPets);
+  },
+
   getOwnerProfile(): Promise<OwnerPetProfile> {
-    return wait(mockState.profile);
+    const activePet = mockState.ownerPets.find((pet) => pet.id === mockState.session?.activePetId);
+    return wait(activePet || mockState.ownerPets[0] || defaultProfile);
   },
 
   updateOwnerProfile(profile: OwnerPetProfile): Promise<OwnerPetProfile> {
-    mockState.profile = profile;
-    return wait(mockState.profile);
+    return wait(updateOwnerPetInState(profile));
+  },
+
+  createOwnerPet(profile: OwnerPetProfileInput): Promise<OwnerPetProfile> {
+    const created = {
+      ...profile,
+      id: `pet-demo-${Date.now()}`,
+    };
+    mockState.ownerPets.push(created);
+    if (mockState.session) {
+      mockState.session = {
+        ...mockState.session,
+        activePetId: created.id,
+      };
+    }
+    return wait(created);
+  },
+
+  updateOwnerPet(profile: OwnerPetProfile): Promise<OwnerPetProfile> {
+    return wait(updateOwnerPetInState(profile));
+  },
+
+  deleteOwnerPet(petId: string): Promise<OwnerPetProfile[]> {
+    if (mockState.ownerPets.length <= 1) {
+      return wait(mockState.ownerPets);
+    }
+    mockState.ownerPets = mockState.ownerPets.filter((pet) => pet.id !== petId);
+    if (mockState.session?.activePetId === petId && mockState.ownerPets[0]) {
+      mockState.session = {
+        ...mockState.session,
+        activePetId: mockState.ownerPets[0].id,
+      };
+    }
+    return wait(mockState.ownerPets);
+  },
+
+  setActivePet(petId: string): Promise<AuthSession> {
+    const activePet = mockState.ownerPets.find((pet) => pet.id === petId);
+    if (!mockState.session || !activePet) {
+      return wait({
+        userId: "owner-demo-1",
+        displayName: "奶盖的家长",
+        activePetId: petId,
+      });
+    }
+    mockState.session = {
+      ...mockState.session,
+      activePetId: petId,
+    };
+    return wait(mockState.session);
   },
 
   listSwipeQueue(request: SwipeQueueRequest): Promise<Pet[]> {
@@ -137,7 +216,7 @@ export const mockApiClient: ApiClient = {
         id: `${conversationId}-message-2`,
         conversationId,
         sender: "owner",
-        body: mockState.profile.note,
+        body: mockState.ownerPets.find((pet) => pet.id === mockState.session?.activePetId)?.note || defaultProfile.note,
         createdAt: "2026-04-21T10:01:00.000Z",
       },
       {
