@@ -33,6 +33,8 @@ type MatchScreenProps = {
   intent: IntentFilter;
   species: SpeciesFilter;
   matches: Pet[];
+  isLoading: boolean;
+  errorMessage: string;
   onSetIntent: (value: IntentFilter) => void;
   onSetSpecies: (value: SpeciesFilter) => void;
   onPass: () => void;
@@ -48,6 +50,8 @@ export function MatchScreen({
   intent,
   species,
   matches,
+  isLoading,
+  errorMessage,
   onSetIntent,
   onSetSpecies,
   onPass,
@@ -64,7 +68,15 @@ export function MatchScreen({
       <FilterRow value={intent} options={intentOptions} onChange={onSetIntent} />
       <FilterRow value={species} options={speciesOptions} onChange={onSetSpecies} />
 
-      {pet ? <PetCard pet={pet} /> : <EmptyState title="暂时没有符合条件的宠物" copy="可以放宽目的、宠物类型或城市范围。" />}
+      {errorMessage ? (
+        <EmptyState title="暂时有点卡住" copy={errorMessage} />
+      ) : isLoading ? (
+        <EmptyState title="正在加载推荐" copy="正在确认账号资料、宠物资料和今日推荐队列。" />
+      ) : pet ? (
+        <PetCard pet={pet} />
+      ) : (
+        <EmptyState title="暂时没有符合条件的宠物" copy="可以放宽目的、宠物类型或城市范围。" />
+      )}
 
       <View style={styles.actionRow}>
         <AppButton label="跳过" variant="danger" onPress={onPass} />

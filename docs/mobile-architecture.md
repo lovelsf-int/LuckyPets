@@ -15,6 +15,10 @@ The current app shell keeps the first product loop small:
 ```text
 App.tsx
 src/
+  api/
+    contracts.ts
+    index.ts
+    mockClient.ts
   app/
     LuckyPetsApp.tsx
     useLuckyPetsState.ts
@@ -64,6 +68,20 @@ src/
 - Social matching and playdates can stay lightweight, but still need reporting, blocking, and unmatching.
 - Location matching should use coarse areas by default, not precise home location.
 - Medical documents should be private by default and shared only after explicit owner action.
+
+## API Boundary In Code
+
+The mobile app now talks to `src/api/index.ts` instead of reading seed data directly from feature screens. The current `mockApiClient` is intentionally shaped like the future backend client.
+
+当前移动端通过 `src/api/index.ts` 访问数据，而不是让业务页面直接读取 seed 数据。现在的 `mockApiClient` 会保持和未来后端客户端一致的形状。
+
+Current client boundary:
+
+- session and profile: `getSession`, `getOwnerProfile`, `updateOwnerProfile`
+- matching: `listSwipeQueue`, `likePet`, `passPet`, `listMatches`
+- messages: `listConversations`, `listMessages`
+- safety: `report`, `blockOwner`, `unmatch`
+- breeding review: `getBreedingEligibility`
 
 ## Release Path
 

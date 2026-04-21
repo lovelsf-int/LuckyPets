@@ -55,7 +55,7 @@ export function LuckyPetsApp() {
           onFindMatches={() => state.setTab("match")}
         />
       ) : state.tab === "profile" ? (
-        <ProfileScreen profile={state.profile} onChangeProfile={state.setProfile} />
+        <ProfileScreen profile={state.profile} onChangeProfile={state.updateProfile} />
       ) : (
         <MatchScreen
           profile={state.profile}
@@ -65,6 +65,8 @@ export function LuckyPetsApp() {
           intent={state.intent}
           species={state.species}
           matches={state.matchedPets}
+          isLoading={state.isLoading}
+          errorMessage={state.errorMessage}
           onSetIntent={state.setIntentFilter}
           onSetSpecies={state.setSpeciesFilter}
           onPass={state.moveNext}
