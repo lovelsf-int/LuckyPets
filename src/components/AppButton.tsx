@@ -7,9 +7,10 @@ type AppButtonProps = {
   label: string;
   variant?: "primary" | "danger" | "quiet";
   onPress: () => void;
+  disabled?: boolean;
 };
 
-export function AppButton({ label, variant = "primary", onPress }: AppButtonProps) {
+export function AppButton({ label, variant = "primary", onPress, disabled = false }: AppButtonProps) {
   const buttonStyle = {
     primary: styles.primary,
     danger: styles.danger,
@@ -24,7 +25,9 @@ export function AppButton({ label, variant = "primary", onPress }: AppButtonProp
   return (
     <Pressable
       accessibilityRole="button"
-      style={[styles.button, buttonStyle]}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      style={[styles.button, buttonStyle, disabled && styles.disabled]}
       onPress={onPress}
     >
       <Text style={[styles.label, labelStyle]}>{label}</Text>
@@ -64,5 +67,8 @@ const styles = StyleSheet.create({
   },
   quietLabel: {
     color: colors.text,
+  },
+  disabled: {
+    opacity: 0.48,
   },
 });

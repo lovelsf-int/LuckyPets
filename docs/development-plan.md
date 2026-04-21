@@ -58,6 +58,8 @@ Deliver an internal-test-ready iOS and Android MVP in 8 weeks. The MVP must supp
 
 ## Week 4 / 第 4 周：Matching / 匹配
 
+- Current progress: swipe queue now returns API metadata, like/pass actions record swipe events once, duplicate likes/passes are guarded in the mock client, matched/passed/blocked/unmatched pets are filtered out of the queue, and the mobile empty state explains why the queue is empty.
+- 当前进展：滑动队列已返回 API 元信息，喜欢/跳过会记录一次滑动事件，mock 客户端已防重复喜欢/跳过，已配对/已跳过/已拉黑/已解除匹配的宠物会从队列中过滤，移动端空状态会说明队列为空的原因。
 - Mobile: implement swipe queue from API, intent/species filters, like/pass, empty states, and match confirmation.
 - Backend: implement matching queue, like/pass events, mutual match creation, and basic anti-spam limits.
 - Data: create Match and swipe event storage.

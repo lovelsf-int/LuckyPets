@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { apiClient } from "../api";
-import type { AuthRequest, AuthSession } from "../api";
+import type { AuthRequest, AuthSession, SwipeQueueMeta } from "../api";
 import type { HealthRecord, IntentFilter, OwnerPetProfile, Pet, PetPhoto, SpeciesFilter, TabKey } from "../types";
 
 export const defaultProfile: OwnerPetProfile = {
@@ -20,6 +20,11 @@ export const defaultProfile: OwnerPetProfile = {
 
 export type ProfileSaveState = "idle" | "dirty" | "saving" | "saved";
 
+const defaultSwipeQueueMeta: SwipeQueueMeta = {
+  totalCandidates: 0,
+  skippedByHistory: 0,
+};
+
 export function useLuckyPetsState() {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [tab, setTab] = useState<TabKey>("match");
@@ -35,6 +40,7 @@ export function useLuckyPetsState() {
   const [healthRecords, setHealthRecords] = useState<HealthRecord[]>([]);
   const [mediaStatus, setMediaStatus] = useState<ProfileSaveState>("idle");
   const [queue, setQueue] = useState<Pet[]>([]);
+  const [swipeQueueMeta, setSwipeQueueMeta] = useState<SwipeQueueMeta>(defaultSwipeQueueMeta);
   const [matchedPets, setMatchedPets] = useState<Pet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -119,6 +125,8 @@ export function useLuckyPetsState() {
     setSession(null);
     setTab("match");
     setSelectedChat("");
+    setQueue([]);
+    setSwipeQueueMeta(defaultSwipeQueueMeta);
     setMatchedPets([]);
   }
 
@@ -140,10 +148,18 @@ export function useLuckyPetsState() {
         setErrorMessage("");
         const nextQueue = await apiClient.listSwipeQueue({ intent, species });
         if (!isActive) return;
-        setQueue(nextQueue);
+        setQueue(nextQueue.pets);
+        setSwipeQueueMeta({
+          totalCandidates: nextQueue.totalCandidates,
+          skippedByHistory: nextQueue.skippedByHistory,
+          emptyReason: nextQueue.emptyReason,
+        });
         setIndex(0);
       } catch {
-        if (isActive) setErrorMessage("暂时无法加载推荐队列，请稍后重试。");
+        if (isActive) {
+          setSwipeQueueMeta(defaultSwipeQueueMeta);
+          setErrorMessage("暂时无法加载推荐队列，请稍后重试。");
+        }
       }
     }
 
@@ -163,20 +179,40 @@ export function useLuckyPetsState() {
     setIndex(0);
   }
 
+  function removePetFromQueue(petName: string) {
+    const wasQueued = queue.some((pet) => pet.name === petName);
+    const nextQueueLength = queue.filter((pet) => pet.name !== petName).length;
+    setQueue((value) => value.filter((pet) => pet.name !== petName));
+    setIndex(0);
+
+    if (!wasQueued) return;
+
+    setSwipeQueueMeta((value) => {
+      const nextSkippedByHistory = Math.min(value.totalCandidates, value.skippedByHistory + 1);
+      return {
+        ...value,
+        skippedByHistory: nextSkippedByHistory,
+        emptyReason: nextQueueLength ? undefined : value.totalCandidates ? "all_seen" : value.emptyReason,
+      };
+    });
+  }
+
   function moveNext() {
-    if (!queue.length) return;
-    if (currentPet) {
-      void apiClient.passPet(currentPet.name);
-    }
-    setIndex((value) => (value + 1) % queue.length);
+    if (!currentPet || !queue.length) return;
+    const skippedPet = currentPet;
+    removePetFromQueue(skippedPet.name);
+    apiClient.passPet(skippedPet.name).catch(() => {
+      setErrorMessage("跳过操作暂时没有同步成功，请稍后重试。");
+    });
   }
 
   function likeCurrentPet() {
     if (!currentPet || !queue.length) return;
-    setMatchedPets((value) => (value.some((pet) => pet.name === currentPet.name) ? value : [...value, currentPet]));
-    setSelectedChat(currentPet.name);
-    setIndex((value) => (value + 1) % queue.length);
-    apiClient.likePet(currentPet.name).then(setMatchedPets).catch(() => {
+    const likedPet = currentPet;
+    setMatchedPets((value) => (value.some((pet) => pet.name === likedPet.name) ? value : [...value, likedPet]));
+    setSelectedChat(likedPet.name);
+    removePetFromQueue(likedPet.name);
+    apiClient.likePet(likedPet.name).then(setMatchedPets).catch(() => {
       setErrorMessage("喜欢操作暂时没有同步成功，请稍后重试。");
     });
   }
@@ -364,6 +400,7 @@ export function useLuckyPetsState() {
     setSpeciesFilter,
     index,
     queue,
+    swipeQueueMeta,
     currentPet,
     matchedPets,
     selectedChat,

@@ -12,6 +12,10 @@ export type {
   PetPhotoInput,
   ReportCategory,
   ReviewStatus,
+  SwipeEvent,
+  SwipeQueueEmptyReason,
+  SwipeQueueMeta,
   SwipeQueueRequest,
+  SwipeQueueResponse,
 } from "./contracts";
 export { mockApiClient as apiClient } from "./mockClient";

@@ -80,10 +80,24 @@ Current client boundary:
 
 - account and profile: `getSession`, `signIn`, `createAccount`, `signOut`, `requestAccountDeletion`, `listOwnerPets`, `getOwnerProfile`, `updateOwnerProfile`, `createOwnerPet`, `updateOwnerPet`, `deleteOwnerPet`, `setActivePet`
 - photos and health records: `listPetPhotos`, `addPetPhoto`, `listHealthRecords`, `addHealthRecord`
-- matching: `listSwipeQueue`, `likePet`, `passPet`, `listMatches`
+- matching: `listSwipeQueue`, `likePet`, `passPet`, `listSwipeEvents`, `listMatches`
 - messages: `listConversations`, `listMessages`
 - safety: `report`, `blockOwner`, `unmatch`
 - breeding review: `getBreedingEligibility`
+
+Matching queue contract:
+
+- `listSwipeQueue` returns pets plus queue metadata: total candidates, skipped history count, and an empty reason.
+- `likePet` and `passPet` record one swipe event per pet/action pair in the mock client.
+- Queue filtering removes pets that are already matched, passed, blocked, or unmatched.
+- The UI uses the empty reason to distinguish narrow filters, completed queues, and safety filtering.
+
+匹配队列契约：
+
+- `listSwipeQueue` 返回宠物列表和队列元信息：候选总数、历史跳过数量和空队列原因。
+- `likePet` 与 `passPet` 在 mock 客户端中为每个宠物/动作组合只记录一次滑动事件。
+- 队列会过滤已经配对、跳过、拉黑或解除匹配的宠物。
+- 移动端会根据空队列原因区分筛选过窄、今日已看完和安全关系过滤。
 
 ## Release Path
 

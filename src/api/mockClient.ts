@@ -12,7 +12,9 @@ import type {
   HealthRecordInput,
   OwnerPetProfileInput,
   PetPhotoInput,
+  SwipeEvent,
   SwipeQueueRequest,
+  SwipeQueueResponse,
 } from "./contracts";
 
 const defaultProfile: OwnerPetProfile = {
@@ -122,8 +124,10 @@ const mockState = {
   } as Record<string, HealthRecord[]>,
   matches: [] as string[],
   passed: [] as string[],
+  swipeEvents: [] as SwipeEvent[],
   reports: [] as CreateReportRequest[],
   blockedOwners: [] as string[],
+  unmatched: [] as string[],
   deletionRequests: [] as AccountDeletionRequest[],
 };
 
@@ -133,6 +137,29 @@ function wait<T>(value: T): Promise<T> {
 
 function matchPetsByName(names: string[]): Pet[] {
   return names.map((name) => pets.find((pet) => pet.name === name)).filter(Boolean) as Pet[];
+}
+
+function recordSwipeEvent(petName: string, action: SwipeEvent["action"]): SwipeEvent {
+  const existing = mockState.swipeEvents.find((event) => event.petName === petName && event.action === action);
+  if (existing) return existing;
+
+  const event = {
+    id: `swipe-${action}-${petName}-${Date.now()}`,
+    petName,
+    action,
+    createdAt: new Date().toISOString(),
+  };
+  mockState.swipeEvents.push(event);
+  return event;
+}
+
+function isHiddenFromSwipeQueue(petName: string) {
+  return (
+    mockState.matches.includes(petName) ||
+    mockState.passed.includes(petName) ||
+    mockState.blockedOwners.includes(petName) ||
+    mockState.unmatched.includes(petName)
+  );
 }
 
 function updateOwnerPetInState(profile: OwnerPetProfile): OwnerPetProfile {
@@ -293,16 +320,40 @@ export const mockApiClient: ApiClient = {
     return wait(mockState.healthRecords[petId]);
   },
 
-  listSwipeQueue(request: SwipeQueueRequest): Promise<Pet[]> {
-    const queue = pets.filter((pet) => {
+  listSwipeQueue(request: SwipeQueueRequest): Promise<SwipeQueueResponse> {
+    const candidates = pets.filter((pet) => {
       const intentMatch = request.intent === "all" || pet.intent === request.intent;
       const speciesMatch = request.species === "all" || pet.species === request.species;
       return intentMatch && speciesMatch;
     });
-    return wait(queue);
+    const queue = candidates.filter((pet) => !isHiddenFromSwipeQueue(pet.name));
+    const skippedByHistory = candidates.filter(
+      (pet) => mockState.matches.includes(pet.name) || mockState.passed.includes(pet.name),
+    ).length;
+    const blockedOrUnmatchedCount = candidates.filter(
+      (pet) => mockState.blockedOwners.includes(pet.name) || mockState.unmatched.includes(pet.name),
+    ).length;
+    const emptyReason =
+      queue.length > 0
+        ? undefined
+        : candidates.length === 0
+          ? request.intent === "all" && request.species === "all"
+            ? "no_candidates"
+            : "filters_too_narrow"
+          : blockedOrUnmatchedCount === candidates.length
+            ? "blocked_or_unmatched"
+            : "all_seen";
+
+    return wait({
+      pets: queue,
+      totalCandidates: candidates.length,
+      skippedByHistory,
+      emptyReason,
+    });
   },
 
   likePet(petName: string): Promise<Pet[]> {
+    recordSwipeEvent(petName, "like");
     if (!mockState.matches.includes(petName)) {
       mockState.matches.push(petName);
     }
@@ -310,10 +361,15 @@ export const mockApiClient: ApiClient = {
   },
 
   passPet(petName: string): Promise<void> {
+    recordSwipeEvent(petName, "pass");
     if (!mockState.passed.includes(petName)) {
       mockState.passed.push(petName);
     }
     return wait(undefined);
+  },
+
+  listSwipeEvents(): Promise<SwipeEvent[]> {
+    return wait([...mockState.swipeEvents]);
   },
 
   listMatches(): Promise<Pet[]> {
@@ -373,6 +429,9 @@ export const mockApiClient: ApiClient = {
 
   unmatch(petName: string): Promise<void> {
     mockState.matches = mockState.matches.filter((name) => name !== petName);
+    if (!mockState.unmatched.includes(petName)) {
+      mockState.unmatched.push(petName);
+    }
     return wait(undefined);
   },
 

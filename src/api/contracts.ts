@@ -34,6 +34,27 @@ export type SwipeQueueRequest = {
   species: SpeciesFilter;
 };
 
+export type SwipeAction = "like" | "pass";
+
+export type SwipeEvent = {
+  id: string;
+  petName: string;
+  action: SwipeAction;
+  createdAt: string;
+};
+
+export type SwipeQueueEmptyReason = "no_candidates" | "filters_too_narrow" | "all_seen" | "blocked_or_unmatched";
+
+export type SwipeQueueMeta = {
+  totalCandidates: number;
+  skippedByHistory: number;
+  emptyReason?: SwipeQueueEmptyReason;
+};
+
+export type SwipeQueueResponse = SwipeQueueMeta & {
+  pets: Pet[];
+};
+
 export type ChatMessage = {
   id: string;
   conversationId: string;
@@ -90,9 +111,10 @@ export type ApiClient = {
   addPetPhoto: (petId: string, photo: PetPhotoInput) => Promise<PetPhoto[]>;
   listHealthRecords: (petId: string) => Promise<HealthRecord[]>;
   addHealthRecord: (petId: string, record: HealthRecordInput) => Promise<HealthRecord[]>;
-  listSwipeQueue: (request: SwipeQueueRequest) => Promise<Pet[]>;
+  listSwipeQueue: (request: SwipeQueueRequest) => Promise<SwipeQueueResponse>;
   likePet: (petName: string) => Promise<Pet[]>;
   passPet: (petName: string) => Promise<void>;
+  listSwipeEvents: () => Promise<SwipeEvent[]>;
   listMatches: () => Promise<Pet[]>;
   listConversations: () => Promise<ConversationSummary[]>;
   listMessages: (conversationId: string) => Promise<ChatMessage[]>;

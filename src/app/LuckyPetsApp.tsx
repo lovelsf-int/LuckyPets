@@ -91,6 +91,7 @@ export function LuckyPetsApp() {
           pet={state.currentPet}
           queueLength={state.queue.length}
           queueIndex={state.index}
+          queueMeta={state.swipeQueueMeta}
           intent={state.intent}
           species={state.species}
           matches={state.matchedPets}

@@ -9,6 +9,7 @@ import { SectionCard } from "../../components/SectionCard";
 import { screenStyles } from "../../components/screenStyles";
 import { TagList } from "../../components/TagList";
 import { colors, spacing } from "../../theme";
+import type { SwipeQueueMeta } from "../../api";
 import type { IntentFilter, OwnerPetProfile, Pet, SpeciesFilter } from "../../types";
 
 const intentOptions: Array<[IntentFilter, string]> = [
@@ -30,6 +31,7 @@ type MatchScreenProps = {
   pet?: Pet;
   queueLength: number;
   queueIndex: number;
+  queueMeta: SwipeQueueMeta;
   intent: IntentFilter;
   species: SpeciesFilter;
   matches: Pet[];
@@ -47,6 +49,7 @@ export function MatchScreen({
   pet,
   queueLength,
   queueIndex,
+  queueMeta,
   intent,
   species,
   matches,
@@ -58,6 +61,9 @@ export function MatchScreen({
   onLike,
   onOpenChat,
 }: MatchScreenProps) {
+  const emptyState = getQueueEmptyState(queueMeta);
+  const actionDisabled = isLoading || Boolean(errorMessage) || !pet;
+
   return (
     <ScrollView contentContainerStyle={screenStyles.scrollContent}>
       <ScreenHeading
@@ -75,15 +81,15 @@ export function MatchScreen({
       ) : pet ? (
         <PetCard pet={pet} />
       ) : (
-        <EmptyState title="暂时没有符合条件的宠物" copy="可以放宽目的、宠物类型或城市范围。" />
+        <EmptyState title={emptyState.title} copy={emptyState.copy} />
       )}
 
       <View style={styles.actionRow}>
-        <AppButton label="跳过" variant="danger" onPress={onPass} />
-        <AppButton label="喜欢" onPress={onLike} />
+        <AppButton label="跳过" variant="danger" disabled={actionDisabled} onPress={onPass} />
+        <AppButton label="喜欢" disabled={actionDisabled} onPress={onLike} />
       </View>
 
-      <Text style={styles.queueText}>{queueLength ? `${queueIndex + 1} / ${queueLength}` : "0 / 0"}</Text>
+      <Text style={styles.queueText}>{getQueueProgress(queueMeta, queueLength, queueIndex)}</Text>
 
       <SectionCard>
         <Text style={screenStyles.sectionTitle}>新配对</Text>
@@ -106,6 +112,46 @@ export function MatchScreen({
       </SectionCard>
     </ScrollView>
   );
+}
+
+function getQueueEmptyState(queueMeta: SwipeQueueMeta) {
+  if (queueMeta.emptyReason === "filters_too_narrow") {
+    return {
+      title: "当前筛选太窄",
+      copy: "可以切回全部目的或全部宠物类型，先扩大候选范围。",
+    };
+  }
+
+  if (queueMeta.emptyReason === "all_seen") {
+    return {
+      title: "今天的推荐已经看完",
+      copy: "新的资料通过审核后会继续进入队列，也可以切换目的或宠物类型。",
+    };
+  }
+
+  if (queueMeta.emptyReason === "blocked_or_unmatched") {
+    return {
+      title: "已按安全关系过滤",
+      copy: "被拉黑或解除匹配的资料不会再次进入推荐。",
+    };
+  }
+
+  return {
+    title: "暂时没有符合条件的宠物",
+    copy: "可以放宽目的、宠物类型或城市范围。",
+  };
+}
+
+function getQueueProgress(queueMeta: SwipeQueueMeta, queueLength: number, queueIndex: number) {
+  if (queueLength) {
+    return `${queueIndex + 1} / ${queueLength} · 候选 ${queueMeta.totalCandidates} 位`;
+  }
+
+  if (queueMeta.totalCandidates && queueMeta.skippedByHistory) {
+    return `已处理 ${queueMeta.skippedByHistory} / ${queueMeta.totalCandidates}`;
+  }
+
+  return "0 / 0";
 }
 
 function PetCard({ pet }: { pet: Pet }) {
