@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { apiClient } from "../api";
-import type { AuthRequest, AuthSession, ReportCategory, SwipeQueueMeta } from "../api";
+import type { AuthRequest, AuthSession, ChatMessage, ConversationSummary, ReportCategory, SwipeQueueMeta } from "../api";
 import type { HealthRecord, IntentFilter, OwnerPetProfile, Pet, PetPhoto, SpeciesFilter, TabKey } from "../types";
 
 export const defaultProfile: OwnerPetProfile = {
@@ -19,6 +19,7 @@ export const defaultProfile: OwnerPetProfile = {
 };
 
 export type ProfileSaveState = "idle" | "dirty" | "saving" | "saved";
+export type MessageLoadState = "idle" | "loading" | "ready";
 export type SafetyActionState = "idle" | "saving" | "reported" | "blocked" | "unmatched";
 
 const defaultSwipeQueueMeta: SwipeQueueMeta = {
@@ -43,6 +44,9 @@ export function useLuckyPetsState() {
   const [queue, setQueue] = useState<Pet[]>([]);
   const [swipeQueueMeta, setSwipeQueueMeta] = useState<SwipeQueueMeta>(defaultSwipeQueueMeta);
   const [matchedPets, setMatchedPets] = useState<Pet[]>([]);
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [messageLoadState, setMessageLoadState] = useState<MessageLoadState>("idle");
   const [safetyActionState, setSafetyActionState] = useState<SafetyActionState>("idle");
   const [safetyNotice, setSafetyNotice] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -71,7 +75,7 @@ export function useLuckyPetsState() {
         setProfile(nextProfile);
         setDraftProfile(nextProfile);
         setMatchedPets(nextMatches);
-        await loadPetMedia(nextProfile.id);
+        await Promise.all([loadPetMedia(nextProfile.id), loadConversationState(nextMatches[0]?.name)]);
       } catch {
         if (isActive) setErrorMessage("暂时无法加载账号资料，请稍后重试。");
       } finally {
@@ -100,7 +104,7 @@ export function useLuckyPetsState() {
       setProfile(nextProfile);
       setDraftProfile(nextProfile);
       setMatchedPets(nextMatches);
-      await loadPetMedia(nextProfile.id);
+      await Promise.all([loadPetMedia(nextProfile.id), loadConversationState(nextMatches[0]?.name)]);
       setTab("match");
     } catch {
       setErrorMessage("登录暂时没有成功，请稍后重试。");
@@ -115,6 +119,9 @@ export function useLuckyPetsState() {
       setErrorMessage("");
       const nextSession = await apiClient.createAccount(request);
       setSession(nextSession);
+      setConversations([]);
+      setChatMessages([]);
+      setMessageLoadState("ready");
       setTab("profile");
     } catch {
       setErrorMessage("创建账号暂时没有成功，请稍后重试。");
@@ -133,6 +140,9 @@ export function useLuckyPetsState() {
     setQueue([]);
     setSwipeQueueMeta(defaultSwipeQueueMeta);
     setMatchedPets([]);
+    setConversations([]);
+    setChatMessages([]);
+    setMessageLoadState("idle");
   }
 
   async function requestAccountDeletion(reason: string) {
@@ -219,9 +229,15 @@ export function useLuckyPetsState() {
     setSafetyActionState("idle");
     setSafetyNotice("");
     removePetFromQueue(likedPet.name);
-    apiClient.likePet(likedPet.name).then(setMatchedPets).catch(() => {
-      setErrorMessage("喜欢操作暂时没有同步成功，请稍后重试。");
-    });
+    apiClient
+      .likePet(likedPet.name)
+      .then((nextMatches) => {
+        setMatchedPets(nextMatches);
+        return loadConversationState(likedPet.name);
+      })
+      .catch(() => {
+        setErrorMessage("喜欢操作暂时没有同步成功，请稍后重试。");
+      });
   }
 
   function openChat(petName: string) {
@@ -229,16 +245,69 @@ export function useLuckyPetsState() {
     setSafetyActionState("idle");
     setSafetyNotice("");
     setTab("messages");
+    void loadConversationState(petName);
   }
 
   function selectChat(petName: string) {
     setSelectedChat(petName);
     setSafetyActionState("idle");
     setSafetyNotice("");
+    void loadMessagesForPet(petName);
+  }
+
+  function changeTab(nextTab: TabKey) {
+    setTab(nextTab);
+    if (nextTab === "messages") {
+      void loadConversationState(selectedChat);
+    }
   }
 
   function getActiveChatPetName() {
     return selectedChat || matchedPets[0]?.name || "";
+  }
+
+  async function loadConversationState(preferredPetName = selectedChat) {
+    try {
+      setMessageLoadState("loading");
+      const nextConversations = await apiClient.listConversations();
+      const activeConversation =
+        nextConversations.find((conversation) => conversation.pet.name === preferredPetName) || nextConversations[0];
+
+      setConversations(nextConversations);
+      setSelectedChat(activeConversation?.pet.name || "");
+
+      if (!activeConversation) {
+        setChatMessages([]);
+        setMessageLoadState("ready");
+        return;
+      }
+
+      const nextMessages = await apiClient.listMessages(activeConversation.id);
+      setChatMessages(nextMessages);
+      setMessageLoadState("ready");
+    } catch {
+      setMessageLoadState("idle");
+      setErrorMessage("消息暂时无法加载，请稍后重试。");
+    }
+  }
+
+  async function loadMessagesForPet(petName: string) {
+    const conversation = conversations.find((item) => item.pet.name === petName);
+    if (!conversation) {
+      await loadConversationState(petName);
+      return;
+    }
+
+    try {
+      setMessageLoadState("loading");
+      setChatMessages([]);
+      const nextMessages = await apiClient.listMessages(conversation.id);
+      setChatMessages(nextMessages);
+      setMessageLoadState("ready");
+    } catch {
+      setMessageLoadState("idle");
+      setErrorMessage("消息暂时无法加载，请稍后重试。");
+    }
   }
 
   async function reportSelectedChat(category: ReportCategory = "harassment") {
@@ -270,10 +339,11 @@ export function useLuckyPetsState() {
       setSafetyActionState("saving");
       setErrorMessage("");
       await apiClient.blockOwner(petName);
-      setMatchedPets((value) => value.filter((pet) => pet.name !== petName));
-      setSelectedChat("");
+      const nextMatches = await apiClient.listMatches();
+      setMatchedPets(nextMatches);
       setSafetyActionState("blocked");
       setSafetyNotice("已拉黑，对方不会再次进入推荐或会话。");
+      await loadConversationState("");
     } catch {
       setSafetyActionState("idle");
       setErrorMessage("拉黑暂时没有成功，请稍后重试。");
@@ -288,10 +358,11 @@ export function useLuckyPetsState() {
       setSafetyActionState("saving");
       setErrorMessage("");
       await apiClient.unmatch(petName);
-      setMatchedPets((value) => value.filter((pet) => pet.name !== petName));
-      setSelectedChat("");
+      const nextMatches = await apiClient.listMatches();
+      setMatchedPets(nextMatches);
       setSafetyActionState("unmatched");
       setSafetyNotice("已解除匹配，这段会话不会继续展示。");
+      await loadConversationState("");
     } catch {
       setSafetyActionState("idle");
       setErrorMessage("解除匹配暂时没有成功，请稍后重试。");
@@ -469,7 +540,7 @@ export function useLuckyPetsState() {
   return {
     session,
     tab,
-    setTab,
+    setTab: changeTab,
     intent,
     setIntentFilter,
     species,
@@ -479,6 +550,9 @@ export function useLuckyPetsState() {
     swipeQueueMeta,
     currentPet,
     matchedPets,
+    conversations,
+    chatMessages,
+    messageLoadState,
     selectedChat,
     selectChat,
     safetyActionState,

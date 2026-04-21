@@ -113,6 +113,18 @@ Safety actions contract:
 - `unmatch` 会移除当前会话，但不会自动视为审核举报。
 - 移动端把举报作为低门槛动作展示，同时将拉黑/解除匹配作为明确的破坏性动作处理。
 
+Messages contract:
+
+- `listConversations` returns the chat entry list with pet identity, last message, and safety state.
+- `listMessages` returns ordered messages for the selected conversation.
+- The message screen does not compose chat bubbles from match data directly; it renders `ConversationSummary` and `ChatMessage` DTOs.
+
+消息契约：
+
+- `listConversations` 返回会话入口列表，包含宠物身份、最后一条消息和安全状态。
+- `listMessages` 返回所选会话的有序消息。
+- 消息页不再直接从配对数据拼气泡，而是渲染 `ConversationSummary` 与 `ChatMessage` DTO。
+
 ## Release Path
 
 1. Finish native MVP screens.

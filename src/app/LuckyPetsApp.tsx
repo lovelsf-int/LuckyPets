@@ -58,9 +58,10 @@ export function LuckyPetsApp() {
         />
       ) : state.tab === "messages" ? (
         <MessagesScreen
-          matches={state.matchedPets}
+          conversations={state.conversations}
+          messages={state.chatMessages}
+          messageLoadState={state.messageLoadState}
           selectedChat={state.selectedChat}
-          profileNote={state.profile.note}
           safetyActionState={state.safetyActionState}
           safetyNotice={state.safetyNotice}
           onSelectChat={state.selectChat}

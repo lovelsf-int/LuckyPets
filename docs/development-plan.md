@@ -74,6 +74,8 @@ Deliver an internal-test-ready iOS and Android MVP in 8 weeks. The MVP must supp
 
 - Current progress: mobile messages now expose report, block, and unmatch actions; report submits a moderation request, while block and unmatch remove the conversation locally and update the mock API state.
 - 当前进展：移动端消息页已提供举报、拉黑和解除匹配操作；举报会提交审核请求，拉黑和解除匹配会移除本地会话并同步 mock API 状态。
+- Current progress: conversation chips and chat bubbles now load through `listConversations` and `listMessages`, so the message screen consumes future backend DTOs instead of hardcoded bubbles.
+- 当前进展：会话入口和聊天气泡已通过 `listConversations` 与 `listMessages` 加载，消息页开始消费未来后端 DTO，而不是写死气泡内容。
 - Mobile: implement conversation list, chat room, safety prompts, report, block, and unmatch.
 - Backend: implement Conversation, Message, Report, block list, unmatch, and message visibility rules.
 - Admin: add report review queue with categories and status transitions.

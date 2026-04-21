@@ -6,14 +6,16 @@ import { ScreenHeading } from "../../components/ScreenHeading";
 import { SectionCard } from "../../components/SectionCard";
 import { screenStyles } from "../../components/screenStyles";
 import { colors, spacing } from "../../theme";
-import type { Pet } from "../../types";
+import type { ChatMessage, ConversationSummary } from "../../api";
 
+type MessageLoadState = "idle" | "loading" | "ready";
 type SafetyActionState = "idle" | "saving" | "reported" | "blocked" | "unmatched";
 
 type MessagesScreenProps = {
-  matches: Pet[];
+  conversations: ConversationSummary[];
+  messages: ChatMessage[];
+  messageLoadState: MessageLoadState;
   selectedChat: string;
-  profileNote: string;
   safetyActionState: SafetyActionState;
   safetyNotice: string;
   onSelectChat: (petName: string) => void;
@@ -24,9 +26,10 @@ type MessagesScreenProps = {
 };
 
 export function MessagesScreen({
-  matches,
+  conversations,
+  messages,
+  messageLoadState,
   selectedChat,
-  profileNote,
   safetyActionState,
   safetyNotice,
   onSelectChat,
@@ -35,14 +38,22 @@ export function MessagesScreen({
   onBlock,
   onUnmatch,
 }: MessagesScreenProps) {
-  const activePet = matches.find((pet) => pet.name === selectedChat) || matches[0];
+  const activeConversation =
+    conversations.find((conversation) => conversation.pet.name === selectedChat) || conversations[0];
+  const activePet = activeConversation?.pet;
   const isSafetySaving = safetyActionState === "saving";
+  const isMessageLoading = messageLoadState === "loading";
 
   if (!activePet) {
     return (
       <View style={screenStyles.fullPanel}>
-        <ScreenHeading eyebrow="消息" title={safetyNotice ? "会话已处理" : "还没有配对"} />
-        <Text style={screenStyles.mutedCopy}>{safetyNotice || "先去喜欢几个合适的新朋友，再回来开始聊天。"}</Text>
+        <ScreenHeading
+          eyebrow="消息"
+          title={safetyNotice ? "会话已处理" : isMessageLoading ? "正在加载消息" : "还没有配对"}
+        />
+        <Text style={screenStyles.mutedCopy}>
+          {safetyNotice || (isMessageLoading ? "正在同步会话列表和最新消息。" : "先去喜欢几个合适的新朋友，再回来开始聊天。")}
+        </Text>
         <View style={styles.singleAction}>
           <AppButton label="去匹配" onPress={onFindMatches} />
         </View>
@@ -54,23 +65,34 @@ export function MessagesScreen({
     <ScrollView contentContainerStyle={screenStyles.scrollContent}>
       <ScreenHeading eyebrow="消息" title="先确认边界，再安排见面。" />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chatTabs}>
-        {matches.map((match) => (
+        {conversations.map((conversation) => (
           <Pressable
-            key={match.name}
+            key={conversation.id}
             accessibilityRole="button"
-            accessibilityState={{ selected: activePet.name === match.name }}
-            style={[styles.chatChip, activePet.name === match.name && styles.chatChipActive]}
-            onPress={() => onSelectChat(match.name)}
+            accessibilityState={{ selected: activePet.name === conversation.pet.name }}
+            style={[styles.chatChip, activePet.name === conversation.pet.name && styles.chatChipActive]}
+            onPress={() => onSelectChat(conversation.pet.name)}
           >
-            <Image source={{ uri: match.photo }} style={styles.chatAvatar} />
-            <Text style={styles.chatChipText}>{match.name}</Text>
+            <Image source={{ uri: conversation.pet.photo }} style={styles.chatAvatar} />
+            <View>
+              <Text style={styles.chatChipText}>{conversation.pet.name}</Text>
+              <Text style={styles.chatChipMeta}>{getSafetyLabel(conversation.safetyState)}</Text>
+            </View>
           </Pressable>
         ))}
       </ScrollView>
       <SectionCard style={styles.chatPanel}>
-        <Text style={styles.messageInbound}>{activePet.opener}</Text>
-        <Text style={styles.messageOutbound}>{profileNote}</Text>
-        <Text style={styles.messageSystem}>见面前请确认牵引、疫苗、过敏和紧急联系人。繁育沟通需先完成认证。</Text>
+        {isMessageLoading ? (
+          <Text style={styles.messageSystem}>正在同步最新消息。</Text>
+        ) : messages.length ? (
+          messages.map((message) => (
+            <Text key={message.id} style={getMessageStyle(message.sender)}>
+              {message.body}
+            </Text>
+          ))
+        ) : (
+          <Text style={styles.messageSystem}>还没有消息，先确认彼此的照护边界。</Text>
+        )}
       </SectionCard>
 
       <SectionCard>
@@ -87,6 +109,18 @@ export function MessagesScreen({
       </SectionCard>
     </ScrollView>
   );
+}
+
+function getSafetyLabel(safetyState: ConversationSummary["safetyState"]) {
+  if (safetyState === "breeding_review_required") return "繁育待审核";
+  if (safetyState === "blocked") return "已拉黑";
+  return "可沟通";
+}
+
+function getMessageStyle(sender: ChatMessage["sender"]) {
+  if (sender === "owner") return styles.messageOutbound;
+  if (sender === "system") return styles.messageSystem;
+  return styles.messageInbound;
 }
 
 const styles = StyleSheet.create({
@@ -120,6 +154,11 @@ const styles = StyleSheet.create({
   chatChipText: {
     color: colors.text,
     fontWeight: "800",
+  },
+  chatChipMeta: {
+    color: colors.muted,
+    fontSize: 12,
+    marginTop: 2,
   },
   chatPanel: {
     minHeight: 380,
