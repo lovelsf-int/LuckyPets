@@ -39,6 +39,20 @@ npm run android
 
 The app entry is `App.tsx`. Store build configuration starts in `app.json` and `eas.json`.
 
+## Planning Docs
+
+The product and engineering plan is recorded in bilingual planning documents:
+
+- [Architecture / 架构设计](docs/architecture.md)
+- [Product Plan / 产品计划](docs/product-plan.md)
+- [8-Week Development Plan / 8 周开发计划](docs/development-plan.md)
+
+Supporting references:
+
+- [Product Roadmap](docs/product-roadmap.md)
+- [Mobile Architecture Notes](docs/mobile-architecture.md)
+- [Store Readiness Checklist](docs/store-readiness.md)
+
 ## Next Build Steps
 
 1. Replace mock pet data with an API.
