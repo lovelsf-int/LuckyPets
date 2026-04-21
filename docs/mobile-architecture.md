@@ -125,6 +125,18 @@ Messages contract:
 - `listMessages` 返回所选会话的有序消息。
 - 消息页不再直接从配对数据拼气泡，而是渲染 `ConversationSummary` 与 `ChatMessage` DTO。
 
+Breeding eligibility contract:
+
+- `getBreedingEligibility` returns the review status, required evidence checklist, and reviewer note for a breeding-intent pet.
+- The message screen shows the breeding gate whenever a conversation requires breeding review.
+- Until eligibility is approved, the UI tells owners to discuss only care boundaries and missing evidence, not mating arrangements, pricing, or handoff logistics.
+
+繁育资格契约：
+
+- `getBreedingEligibility` 返回繁育意图宠物的审核状态、必备材料清单和审核备注。
+- 当会话需要繁育审核时，消息页会展示繁育准入门禁。
+- 资格通过前，移动端会提示家长只讨论照护边界和材料补齐，不推进配种安排、价格或交接。
+
 ## Release Path
 
 1. Finish native MVP screens.

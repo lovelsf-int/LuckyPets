@@ -88,6 +88,8 @@ Deliver an internal-test-ready iOS and Android MVP in 8 weeks. The MVP must supp
 
 ## Week 6 / 第 6 周：Breeding Eligibility / 繁育资格
 
+- Current progress: breeding conversations now load `getBreedingEligibility`, show review status, required evidence, reviewer note, and blocked guidance before eligibility is approved.
+- 当前进展：繁育会话已接入 `getBreedingEligibility`，展示审核状态、必备材料、审核备注，并在资格通过前给出阻断式沟通提醒。
 - Mobile: show breeding eligibility status, required checklist, blocked breeding chat state, and review result copy.
 - Backend: implement BreedingEligibility records, required evidence checklist, review transitions, and audit logs.
 - Admin: implement breeding eligibility review detail page.

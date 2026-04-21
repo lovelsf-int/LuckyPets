@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 
 import { apiClient } from "../api";
-import type { AuthRequest, AuthSession, ChatMessage, ConversationSummary, ReportCategory, SwipeQueueMeta } from "../api";
+import type {
+  AuthRequest,
+  AuthSession,
+  BreedingEligibility,
+  ChatMessage,
+  ConversationSummary,
+  ReportCategory,
+  SwipeQueueMeta,
+} from "../api";
 import type { HealthRecord, IntentFilter, OwnerPetProfile, Pet, PetPhoto, SpeciesFilter, TabKey } from "../types";
 
 export const defaultProfile: OwnerPetProfile = {
@@ -20,6 +28,7 @@ export const defaultProfile: OwnerPetProfile = {
 
 export type ProfileSaveState = "idle" | "dirty" | "saving" | "saved";
 export type MessageLoadState = "idle" | "loading" | "ready";
+export type EligibilityLoadState = "idle" | "loading" | "ready";
 export type SafetyActionState = "idle" | "saving" | "reported" | "blocked" | "unmatched";
 
 const defaultSwipeQueueMeta: SwipeQueueMeta = {
@@ -47,6 +56,8 @@ export function useLuckyPetsState() {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [messageLoadState, setMessageLoadState] = useState<MessageLoadState>("idle");
+  const [breedingEligibility, setBreedingEligibility] = useState<BreedingEligibility | null>(null);
+  const [eligibilityLoadState, setEligibilityLoadState] = useState<EligibilityLoadState>("idle");
   const [safetyActionState, setSafetyActionState] = useState<SafetyActionState>("idle");
   const [safetyNotice, setSafetyNotice] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -122,6 +133,8 @@ export function useLuckyPetsState() {
       setConversations([]);
       setChatMessages([]);
       setMessageLoadState("ready");
+      setBreedingEligibility(null);
+      setEligibilityLoadState("ready");
       setTab("profile");
     } catch {
       setErrorMessage("创建账号暂时没有成功，请稍后重试。");
@@ -143,6 +156,8 @@ export function useLuckyPetsState() {
     setConversations([]);
     setChatMessages([]);
     setMessageLoadState("idle");
+    setBreedingEligibility(null);
+    setEligibilityLoadState("idle");
   }
 
   async function requestAccountDeletion(reason: string) {
@@ -278,12 +293,15 @@ export function useLuckyPetsState() {
 
       if (!activeConversation) {
         setChatMessages([]);
+        setBreedingEligibility(null);
+        setEligibilityLoadState("ready");
         setMessageLoadState("ready");
         return;
       }
 
       const nextMessages = await apiClient.listMessages(activeConversation.id);
       setChatMessages(nextMessages);
+      await loadBreedingEligibility(activeConversation);
       setMessageLoadState("ready");
     } catch {
       setMessageLoadState("idle");
@@ -303,10 +321,30 @@ export function useLuckyPetsState() {
       setChatMessages([]);
       const nextMessages = await apiClient.listMessages(conversation.id);
       setChatMessages(nextMessages);
+      await loadBreedingEligibility(conversation);
       setMessageLoadState("ready");
     } catch {
       setMessageLoadState("idle");
       setErrorMessage("消息暂时无法加载，请稍后重试。");
+    }
+  }
+
+  async function loadBreedingEligibility(conversation: ConversationSummary) {
+    if (conversation.pet.intent !== "breeding" && conversation.safetyState !== "breeding_review_required") {
+      setBreedingEligibility(null);
+      setEligibilityLoadState("ready");
+      return;
+    }
+
+    try {
+      setEligibilityLoadState("loading");
+      const nextEligibility = await apiClient.getBreedingEligibility(conversation.pet.name);
+      setBreedingEligibility(nextEligibility);
+      setEligibilityLoadState("ready");
+    } catch {
+      setBreedingEligibility(null);
+      setEligibilityLoadState("idle");
+      setErrorMessage("繁育资格状态暂时无法加载，请稍后重试。");
     }
   }
 
@@ -553,6 +591,8 @@ export function useLuckyPetsState() {
     conversations,
     chatMessages,
     messageLoadState,
+    breedingEligibility,
+    eligibilityLoadState,
     selectedChat,
     selectChat,
     safetyActionState,

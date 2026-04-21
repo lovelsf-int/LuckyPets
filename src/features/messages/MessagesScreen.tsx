@@ -6,15 +6,18 @@ import { ScreenHeading } from "../../components/ScreenHeading";
 import { SectionCard } from "../../components/SectionCard";
 import { screenStyles } from "../../components/screenStyles";
 import { colors, spacing } from "../../theme";
-import type { ChatMessage, ConversationSummary } from "../../api";
+import type { BreedingEligibility, ChatMessage, ConversationSummary, ReviewStatus } from "../../api";
 
 type MessageLoadState = "idle" | "loading" | "ready";
+type EligibilityLoadState = "idle" | "loading" | "ready";
 type SafetyActionState = "idle" | "saving" | "reported" | "blocked" | "unmatched";
 
 type MessagesScreenProps = {
   conversations: ConversationSummary[];
   messages: ChatMessage[];
   messageLoadState: MessageLoadState;
+  breedingEligibility: BreedingEligibility | null;
+  eligibilityLoadState: EligibilityLoadState;
   selectedChat: string;
   safetyActionState: SafetyActionState;
   safetyNotice: string;
@@ -29,6 +32,8 @@ export function MessagesScreen({
   conversations,
   messages,
   messageLoadState,
+  breedingEligibility,
+  eligibilityLoadState,
   selectedChat,
   safetyActionState,
   safetyNotice,
@@ -43,6 +48,8 @@ export function MessagesScreen({
   const activePet = activeConversation?.pet;
   const isSafetySaving = safetyActionState === "saving";
   const isMessageLoading = messageLoadState === "loading";
+  const shouldShowBreedingGate =
+    activeConversation?.safetyState === "breeding_review_required" || activePet?.intent === "breeding";
 
   if (!activePet) {
     return (
@@ -95,6 +102,10 @@ export function MessagesScreen({
         )}
       </SectionCard>
 
+      {shouldShowBreedingGate ? (
+        <BreedingGate eligibility={breedingEligibility} loadState={eligibilityLoadState} />
+      ) : null}
+
       <SectionCard>
         <Text style={screenStyles.sectionTitle}>安全操作</Text>
         <Text style={screenStyles.mutedCopy}>
@@ -111,10 +122,58 @@ export function MessagesScreen({
   );
 }
 
+function BreedingGate({
+  eligibility,
+  loadState,
+}: {
+  eligibility: BreedingEligibility | null;
+  loadState: EligibilityLoadState;
+}) {
+  const isApproved = eligibility?.status === "approved";
+  const statusText = eligibility
+    ? getEligibilityLabel(eligibility.status)
+    : loadState === "loading"
+      ? "正在确认"
+      : "待审核";
+
+  return (
+    <SectionCard>
+      <View style={styles.gateHeader}>
+        <Text style={screenStyles.sectionTitle}>繁育准入</Text>
+        <Text style={[styles.statusPill, isApproved ? styles.statusApproved : styles.statusPending]}>{statusText}</Text>
+      </View>
+      <Text style={screenStyles.mutedCopy}>
+        {isApproved
+          ? "资格审核已通过，仍建议在见面前再次确认兽医记录、照护计划和当地规则。"
+          : "审核通过前，请只讨论照护边界和资料补齐，不推进配种安排、价格或线下交接。"}
+      </Text>
+      {loadState === "loading" ? <Text style={styles.checkItem}>正在同步审核材料清单。</Text> : null}
+      {eligibility?.requiredEvidence.length ? (
+        <View style={styles.checkList}>
+          {eligibility.requiredEvidence.map((item) => (
+            <Text key={item} style={styles.checkItem}>
+              {isApproved ? "已确认" : "待提交"} · {item}
+            </Text>
+          ))}
+        </View>
+      ) : null}
+      {eligibility?.reviewerNote ? <Text style={styles.reviewerNote}>{eligibility.reviewerNote}</Text> : null}
+    </SectionCard>
+  );
+}
+
 function getSafetyLabel(safetyState: ConversationSummary["safetyState"]) {
   if (safetyState === "breeding_review_required") return "繁育待审核";
   if (safetyState === "blocked") return "已拉黑";
   return "可沟通";
+}
+
+function getEligibilityLabel(status: ReviewStatus) {
+  if (status === "approved") return "已通过";
+  if (status === "rejected") return "未通过";
+  if (status === "expired") return "已过期";
+  if (status === "not_required") return "无需审核";
+  return "待审核";
 }
 
 function getMessageStyle(sender: ChatMessage["sender"]) {
@@ -174,6 +233,43 @@ const styles = StyleSheet.create({
   safetyActions: {
     flexDirection: "row",
     gap: spacing[2],
+  },
+  gateHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing[2],
+  },
+  statusPill: {
+    overflow: "hidden",
+    minWidth: 68,
+    paddingHorizontal: spacing[2],
+    paddingVertical: 7,
+    borderRadius: 8,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  statusPending: {
+    color: colors.danger,
+    backgroundColor: colors.dangerBg,
+  },
+  statusApproved: {
+    color: colors.success,
+    backgroundColor: colors.successSoft,
+  },
+  checkList: {
+    gap: spacing[1],
+  },
+  checkItem: {
+    color: colors.text,
+    lineHeight: 22,
+  },
+  reviewerNote: {
+    padding: spacing[2],
+    borderRadius: 8,
+    color: colors.muted,
+    backgroundColor: colors.background,
+    lineHeight: 22,
   },
   messageInbound: {
     alignSelf: "flex-start",

@@ -61,6 +61,8 @@ export function LuckyPetsApp() {
           conversations={state.conversations}
           messages={state.chatMessages}
           messageLoadState={state.messageLoadState}
+          breedingEligibility={state.breedingEligibility}
+          eligibilityLoadState={state.eligibilityLoadState}
           selectedChat={state.selectedChat}
           safetyActionState={state.safetyActionState}
           safetyNotice={state.safetyNotice}
