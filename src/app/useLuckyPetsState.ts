@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { apiClient } from "../api";
 import type { AuthRequest, AuthSession } from "../api";
-import type { IntentFilter, OwnerPetProfile, Pet, SpeciesFilter, TabKey } from "../types";
+import type { HealthRecord, IntentFilter, OwnerPetProfile, Pet, PetPhoto, SpeciesFilter, TabKey } from "../types";
 
 export const defaultProfile: OwnerPetProfile = {
   id: "pet-demo-naigai",
@@ -31,6 +31,9 @@ export function useLuckyPetsState() {
   const [petProfiles, setPetProfiles] = useState<OwnerPetProfile[]>([defaultProfile]);
   const [draftProfile, setDraftProfile] = useState<OwnerPetProfile>(defaultProfile);
   const [profileSaveState, setProfileSaveState] = useState<ProfileSaveState>("idle");
+  const [petPhotos, setPetPhotos] = useState<PetPhoto[]>([]);
+  const [healthRecords, setHealthRecords] = useState<HealthRecord[]>([]);
+  const [mediaStatus, setMediaStatus] = useState<ProfileSaveState>("idle");
   const [queue, setQueue] = useState<Pet[]>([]);
   const [matchedPets, setMatchedPets] = useState<Pet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,6 +62,7 @@ export function useLuckyPetsState() {
         setProfile(nextProfile);
         setDraftProfile(nextProfile);
         setMatchedPets(nextMatches);
+        await loadPetMedia(nextProfile.id);
       } catch {
         if (isActive) setErrorMessage("暂时无法加载账号资料，请稍后重试。");
       } finally {
@@ -87,6 +91,7 @@ export function useLuckyPetsState() {
       setProfile(nextProfile);
       setDraftProfile(nextProfile);
       setMatchedPets(nextMatches);
+      await loadPetMedia(nextProfile.id);
       setTab("match");
     } catch {
       setErrorMessage("登录暂时没有成功，请稍后重试。");
@@ -192,6 +197,7 @@ export function useLuckyPetsState() {
     setProfile(nextProfile);
     setDraftProfile(nextProfile);
     setProfileSaveState("idle");
+    void loadPetMedia(petId);
     apiClient.setActivePet(petId).then(setSession).catch(() => {
       setErrorMessage("当前宠物切换暂时没有同步成功，请稍后重试。");
     });
@@ -211,7 +217,31 @@ export function useLuckyPetsState() {
       photoCount: 0,
       healthStatus: "not_started",
     });
+    setPetPhotos([]);
+    setHealthRecords([]);
     setProfileSaveState("dirty");
+  }
+
+  async function loadPetMedia(petId: string) {
+    if (!petId) {
+      setPetPhotos([]);
+      setHealthRecords([]);
+      return;
+    }
+
+    try {
+      setMediaStatus("saving");
+      const [nextPhotos, nextRecords] = await Promise.all([
+        apiClient.listPetPhotos(petId),
+        apiClient.listHealthRecords(petId),
+      ]);
+      setPetPhotos(nextPhotos);
+      setHealthRecords(nextRecords);
+      setMediaStatus("idle");
+    } catch {
+      setMediaStatus("dirty");
+      setErrorMessage("照片或健康记录暂时无法加载，请稍后重试。");
+    }
   }
 
   async function saveDraftProfile() {
@@ -237,6 +267,7 @@ export function useLuckyPetsState() {
       setProfile(savedProfile);
       setDraftProfile(savedProfile);
       setProfileSaveState("saved");
+      await loadPetMedia(savedProfile.id);
       const nextSession = await apiClient.setActivePet(savedProfile.id);
       setSession(nextSession);
     } catch {
@@ -259,11 +290,67 @@ export function useLuckyPetsState() {
       setPetProfiles(nextProfiles);
       setProfile(nextProfile);
       setDraftProfile(nextProfile);
+      await loadPetMedia(nextProfile.id);
       setProfileSaveState("idle");
       const nextSession = await apiClient.setActivePet(nextProfile.id);
       setSession(nextSession);
     } catch {
       setErrorMessage("宠物资料暂时没有删除成功，请稍后重试。");
+    }
+  }
+
+  async function addMockPetPhoto() {
+    if (!draftProfile.id) {
+      await saveDraftProfile();
+      return;
+    }
+
+    try {
+      setMediaStatus("saving");
+      setErrorMessage("");
+      const nextPhotos = await apiClient.addPetPhoto(draftProfile.id, {
+        uri: `mock://${draftProfile.id}/photo-${petPhotos.length + 1}`,
+        caption: `新增照片 ${petPhotos.length + 1}`,
+      });
+      const nextProfiles = await apiClient.listOwnerPets();
+      const nextProfile = nextProfiles.find((pet) => pet.id === draftProfile.id) || draftProfile;
+      setPetPhotos(nextPhotos);
+      setPetProfiles(nextProfiles);
+      setProfile(nextProfile);
+      setDraftProfile(nextProfile);
+      setMediaStatus("saved");
+    } catch {
+      setMediaStatus("dirty");
+      setErrorMessage("照片暂时没有添加成功，请稍后重试。");
+    }
+  }
+
+  async function addMockHealthRecord() {
+    if (!draftProfile.id) {
+      await saveDraftProfile();
+      return;
+    }
+
+    try {
+      setMediaStatus("saving");
+      setErrorMessage("");
+      const today = new Date().toISOString().slice(0, 10);
+      const nextRecords = await apiClient.addHealthRecord(draftProfile.id, {
+        type: draftProfile.intent === "breeding" ? "genetic_screening" : "vaccination",
+        title: draftProfile.intent === "breeding" ? "基因筛查材料" : "疫苗记录",
+        issuedAt: today,
+        note: "由移动端 mock 入口创建，后续接真实文件上传和审核。",
+      });
+      const nextProfiles = await apiClient.listOwnerPets();
+      const nextProfile = nextProfiles.find((pet) => pet.id === draftProfile.id) || draftProfile;
+      setHealthRecords(nextRecords);
+      setPetProfiles(nextProfiles);
+      setProfile(nextProfile);
+      setDraftProfile(nextProfile);
+      setMediaStatus("saved");
+    } catch {
+      setMediaStatus("dirty");
+      setErrorMessage("健康记录暂时没有添加成功，请稍后重试。");
     }
   }
 
@@ -285,11 +372,16 @@ export function useLuckyPetsState() {
     petProfiles,
     draftProfile,
     profileSaveState,
+    petPhotos,
+    healthRecords,
+    mediaStatus,
     updateProfile,
     selectPetProfile,
     startNewPetProfile,
     saveDraftProfile,
     deleteDraftProfile,
+    addMockPetPhoto,
+    addMockHealthRecord,
     isLoading,
     errorMessage,
     signIn,

@@ -12,6 +12,27 @@ export type PetSex = "female" | "male" | "unknown";
 
 export type HealthReviewStatus = "not_started" | "pending" | "approved" | "needs_more_info";
 
+export type PetPhoto = {
+  id: string;
+  petId: string;
+  uri: string;
+  caption: string;
+  status: "uploaded" | "reviewing";
+};
+
+export type HealthRecordType = "vaccination" | "parasite_prevention" | "vet_exam" | "genetic_screening";
+
+export type HealthRecord = {
+  id: string;
+  petId: string;
+  type: HealthRecordType;
+  title: string;
+  issuedAt: string;
+  status: HealthReviewStatus;
+  isPrivate: boolean;
+  note: string;
+};
+
 export type OwnerPetProfile = {
   id: string;
   name: string;

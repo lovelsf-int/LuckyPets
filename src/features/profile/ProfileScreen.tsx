@@ -8,7 +8,7 @@ import { SectionCard } from "../../components/SectionCard";
 import { screenStyles } from "../../components/screenStyles";
 import { colors, spacing } from "../../theme";
 import type { AuthSession } from "../../api";
-import type { MatchIntent, OwnerPetProfile, PetSex, SpeciesFilter } from "../../types";
+import type { HealthRecord, MatchIntent, OwnerPetProfile, PetPhoto, PetSex, SpeciesFilter } from "../../types";
 import type { ProfileSaveState } from "../../app/useLuckyPetsState";
 
 const textFields: Array<[keyof Pick<OwnerPetProfile, "name" | "city" | "breed" | "age" | "note">, string, boolean]> = [
@@ -51,18 +51,30 @@ const healthStatusLabel: Record<OwnerPetProfile["healthStatus"], string> = {
   needs_more_info: "需补充",
 };
 
+const recordTypeLabel: Record<HealthRecord["type"], string> = {
+  vaccination: "疫苗",
+  parasite_prevention: "驱虫",
+  vet_exam: "体检",
+  genetic_screening: "基因筛查",
+};
+
 type ProfileScreenProps = {
   session: AuthSession;
   activePetId: string;
   petProfiles: OwnerPetProfile[];
   draftProfile: OwnerPetProfile;
   saveState: ProfileSaveState;
+  mediaStatus: ProfileSaveState;
+  petPhotos: PetPhoto[];
+  healthRecords: HealthRecord[];
   errorMessage: string;
   onChangeProfile: (profile: OwnerPetProfile) => void;
   onSelectPet: (petId: string) => void;
   onStartNewPet: () => void;
   onSaveProfile: () => void;
   onDeleteProfile: () => void;
+  onAddPhoto: () => void;
+  onAddHealthRecord: () => void;
   onSignOut: () => void;
   onRequestAccountDeletion: (reason: string) => void;
 };
@@ -73,12 +85,17 @@ export function ProfileScreen({
   petProfiles,
   draftProfile,
   saveState,
+  mediaStatus,
+  petPhotos,
+  healthRecords,
   errorMessage,
   onChangeProfile,
   onSelectPet,
   onStartNewPet,
   onSaveProfile,
   onDeleteProfile,
+  onAddPhoto,
+  onAddHealthRecord,
   onSignOut,
   onRequestAccountDeletion,
 }: ProfileScreenProps) {
@@ -167,10 +184,13 @@ export function ProfileScreen({
       </SectionCard>
 
       <SectionCard>
-        <Text style={screenStyles.sectionTitle}>照片与健康记录</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={screenStyles.sectionTitle}>照片与健康记录</Text>
+          <Text style={styles.saveState}>{saveStateLabel[mediaStatus]}</Text>
+        </View>
         <View style={styles.statusGrid}>
           <View style={styles.statusItem}>
-            <Text style={styles.statusValue}>{draftProfile.photoCount}</Text>
+            <Text style={styles.statusValue}>{petPhotos.length}</Text>
             <Text style={styles.statusLabel}>照片</Text>
           </View>
           <View style={styles.statusItem}>
@@ -178,8 +198,42 @@ export function ProfileScreen({
             <Text style={styles.statusLabel}>健康记录</Text>
           </View>
         </View>
+
+        <View style={styles.actionRow}>
+          <AppButton label={mediaStatus === "saving" ? "添加中" : "添加照片"} variant="quiet" onPress={onAddPhoto} />
+          <AppButton label="添加健康记录" variant="quiet" onPress={onAddHealthRecord} />
+        </View>
+
+        {petPhotos.length ? (
+          <View style={styles.recordList}>
+            {petPhotos.map((photo) => (
+              <View key={photo.id} style={styles.recordRow}>
+                <Text style={styles.recordTitle}>{photo.caption}</Text>
+                <Text style={styles.recordMeta}>{photo.status === "reviewing" ? "审核中" : "已上传"}</Text>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text style={screenStyles.mutedCopy}>还没有照片。先添加一张头像或生活照，后续会接真实相册上传。</Text>
+        )}
+
+        {healthRecords.length ? (
+          <View style={styles.recordList}>
+            {healthRecords.map((record) => (
+              <View key={record.id} style={styles.recordRow}>
+                <Text style={styles.recordTitle}>{record.title}</Text>
+                <Text style={styles.recordMeta}>
+                  {recordTypeLabel[record.type]} · {record.issuedAt} · {healthStatusLabel[record.status]} · {record.isPrivate ? "私密" : "可见"}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text style={screenStyles.mutedCopy}>还没有健康记录。繁育资料需要先补齐疫苗、体检和必要筛查。</Text>
+        )}
+
         <Text style={screenStyles.mutedCopy}>
-          下一步会接照片上传、疫苗记录、驱虫记录和繁育资格材料。医疗文件默认私密，只在家长明确授权后分享。
+          医疗文件默认私密，只在家长明确授权后分享。这里先使用 mock 记录，下一步接对象存储签名上传和后台审核。
         </Text>
       </SectionCard>
 
@@ -273,5 +327,22 @@ const styles = StyleSheet.create({
   },
   statusLabel: {
     color: colors.muted,
+  },
+  recordList: {
+    gap: spacing[1],
+  },
+  recordRow: {
+    gap: 4,
+    padding: spacing[2],
+    borderRadius: 8,
+    backgroundColor: colors.background,
+  },
+  recordTitle: {
+    color: colors.text,
+    fontWeight: "800",
+  },
+  recordMeta: {
+    color: colors.muted,
+    lineHeight: 20,
   },
 });

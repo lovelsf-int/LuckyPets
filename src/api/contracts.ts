@@ -1,4 +1,4 @@
-import type { IntentFilter, OwnerPetProfile, Pet, SpeciesFilter } from "../types";
+import type { HealthRecord, HealthRecordType, IntentFilter, OwnerPetProfile, Pet, PetPhoto, SpeciesFilter } from "../types";
 
 export type AuthSession = {
   userId: string;
@@ -16,6 +16,18 @@ export type AccountDeletionRequest = {
 };
 
 export type OwnerPetProfileInput = Omit<OwnerPetProfile, "id">;
+
+export type PetPhotoInput = {
+  uri: string;
+  caption: string;
+};
+
+export type HealthRecordInput = {
+  type: HealthRecordType;
+  title: string;
+  issuedAt: string;
+  note: string;
+};
 
 export type SwipeQueueRequest = {
   intent: IntentFilter;
@@ -74,6 +86,10 @@ export type ApiClient = {
   updateOwnerPet: (profile: OwnerPetProfile) => Promise<OwnerPetProfile>;
   deleteOwnerPet: (petId: string) => Promise<OwnerPetProfile[]>;
   setActivePet: (petId: string) => Promise<AuthSession>;
+  listPetPhotos: (petId: string) => Promise<PetPhoto[]>;
+  addPetPhoto: (petId: string, photo: PetPhotoInput) => Promise<PetPhoto[]>;
+  listHealthRecords: (petId: string) => Promise<HealthRecord[]>;
+  addHealthRecord: (petId: string, record: HealthRecordInput) => Promise<HealthRecord[]>;
   listSwipeQueue: (request: SwipeQueueRequest) => Promise<Pet[]>;
   likePet: (petName: string) => Promise<Pet[]>;
   passPet: (petName: string) => Promise<void>;

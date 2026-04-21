@@ -71,12 +71,17 @@ export function LuckyPetsApp() {
           petProfiles={state.petProfiles}
           draftProfile={state.draftProfile}
           saveState={state.profileSaveState}
+          mediaStatus={state.mediaStatus}
+          petPhotos={state.petPhotos}
+          healthRecords={state.healthRecords}
           errorMessage={state.errorMessage}
           onChangeProfile={state.updateProfile}
           onSelectPet={state.selectPetProfile}
           onStartNewPet={state.startNewPetProfile}
           onSaveProfile={state.saveDraftProfile}
           onDeleteProfile={state.deleteDraftProfile}
+          onAddPhoto={state.addMockPetPhoto}
+          onAddHealthRecord={state.addMockHealthRecord}
           onSignOut={state.signOut}
           onRequestAccountDeletion={state.requestAccountDeletion}
         />

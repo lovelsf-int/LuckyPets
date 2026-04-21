@@ -79,6 +79,7 @@ The mobile app now talks to `src/api/index.ts` instead of reading seed data dire
 Current client boundary:
 
 - account and profile: `getSession`, `signIn`, `createAccount`, `signOut`, `requestAccountDeletion`, `listOwnerPets`, `getOwnerProfile`, `updateOwnerProfile`, `createOwnerPet`, `updateOwnerPet`, `deleteOwnerPet`, `setActivePet`
+- photos and health records: `listPetPhotos`, `addPetPhoto`, `listHealthRecords`, `addHealthRecord`
 - matching: `listSwipeQueue`, `likePet`, `passPet`, `listMatches`
 - messages: `listConversations`, `listMessages`
 - safety: `report`, `blockOwner`, `unmatch`

@@ -1,5 +1,5 @@
 import { pets } from "../data/pets";
-import type { OwnerPetProfile, Pet } from "../types";
+import type { HealthRecord, OwnerPetProfile, Pet, PetPhoto } from "../types";
 import type {
   AccountDeletionRequest,
   ApiClient,
@@ -9,7 +9,9 @@ import type {
   ChatMessage,
   ConversationSummary,
   CreateReportRequest,
+  HealthRecordInput,
   OwnerPetProfileInput,
+  PetPhotoInput,
   SwipeQueueRequest,
 } from "./contracts";
 
@@ -48,6 +50,76 @@ const mockState = {
     activePetId: "pet-demo-naigai",
   } as AuthSession | null,
   ownerPets: [defaultProfile, secondProfile],
+  photos: {
+    "pet-demo-naigai": [
+      {
+        id: "photo-demo-naigai-1",
+        petId: "pet-demo-naigai",
+        uri: "mock://naigai/photo-1",
+        caption: "公园散步",
+        status: "uploaded",
+      },
+      {
+        id: "photo-demo-naigai-2",
+        petId: "pet-demo-naigai",
+        uri: "mock://naigai/photo-2",
+        caption: "疫苗后状态",
+        status: "uploaded",
+      },
+      {
+        id: "photo-demo-naigai-3",
+        petId: "pet-demo-naigai",
+        uri: "mock://naigai/photo-3",
+        caption: "牵引训练",
+        status: "reviewing",
+      },
+    ],
+    "pet-demo-mitao": [
+      {
+        id: "photo-demo-mitao-1",
+        petId: "pet-demo-mitao",
+        uri: "mock://mitao/photo-1",
+        caption: "窗边晒太阳",
+        status: "uploaded",
+      },
+    ],
+  } as Record<string, PetPhoto[]>,
+  healthRecords: {
+    "pet-demo-naigai": [
+      {
+        id: "record-demo-naigai-1",
+        petId: "pet-demo-naigai",
+        type: "vaccination",
+        title: "年度疫苗记录",
+        issuedAt: "2026-03-18",
+        status: "approved",
+        isPrivate: true,
+        note: "下一次加强针预计 2027 年 3 月。",
+      },
+      {
+        id: "record-demo-naigai-2",
+        petId: "pet-demo-naigai",
+        type: "parasite_prevention",
+        title: "体内外驱虫",
+        issuedAt: "2026-04-01",
+        status: "approved",
+        isPrivate: true,
+        note: "常规预防记录。",
+      },
+    ],
+    "pet-demo-mitao": [
+      {
+        id: "record-demo-mitao-1",
+        petId: "pet-demo-mitao",
+        type: "vet_exam",
+        title: "基础体检",
+        issuedAt: "2026-04-08",
+        status: "pending",
+        isPrivate: true,
+        note: "等待审核。",
+      },
+    ],
+  } as Record<string, HealthRecord[]>,
   matches: [] as string[],
   passed: [] as string[],
   reports: [] as CreateReportRequest[],
@@ -66,6 +138,23 @@ function matchPetsByName(names: string[]): Pet[] {
 function updateOwnerPetInState(profile: OwnerPetProfile): OwnerPetProfile {
   mockState.ownerPets = mockState.ownerPets.map((pet) => (pet.id === profile.id ? profile : pet));
   return profile;
+}
+
+function syncPetProfileReviewState(petId: string) {
+  const photos = mockState.photos[petId] || [];
+  const records = mockState.healthRecords[petId] || [];
+  const approvedRecords = records.filter((record) => record.status === "approved").length;
+  const nextStatus = records.length === 0 ? "not_started" : approvedRecords === records.length ? "approved" : "pending";
+
+  mockState.ownerPets = mockState.ownerPets.map((pet) =>
+    pet.id === petId
+      ? {
+          ...pet,
+          photoCount: photos.length,
+          healthStatus: nextStatus,
+        }
+      : pet,
+  );
 }
 
 export const mockApiClient: ApiClient = {
@@ -120,6 +209,8 @@ export const mockApiClient: ApiClient = {
       id: `pet-demo-${Date.now()}`,
     };
     mockState.ownerPets.push(created);
+    mockState.photos[created.id] = [];
+    mockState.healthRecords[created.id] = [];
     if (mockState.session) {
       mockState.session = {
         ...mockState.session,
@@ -144,6 +235,8 @@ export const mockApiClient: ApiClient = {
         activePetId: mockState.ownerPets[0].id,
       };
     }
+    delete mockState.photos[petId];
+    delete mockState.healthRecords[petId];
     return wait(mockState.ownerPets);
   },
 
@@ -161,6 +254,43 @@ export const mockApiClient: ApiClient = {
       activePetId: petId,
     };
     return wait(mockState.session);
+  },
+
+  listPetPhotos(petId: string): Promise<PetPhoto[]> {
+    return wait(mockState.photos[petId] || []);
+  },
+
+  addPetPhoto(petId: string, photo: PetPhotoInput): Promise<PetPhoto[]> {
+    const nextPhoto: PetPhoto = {
+      id: `photo-${petId}-${Date.now()}`,
+      petId,
+      uri: photo.uri,
+      caption: photo.caption,
+      status: "reviewing",
+    };
+    mockState.photos[petId] = [...(mockState.photos[petId] || []), nextPhoto];
+    syncPetProfileReviewState(petId);
+    return wait(mockState.photos[petId]);
+  },
+
+  listHealthRecords(petId: string): Promise<HealthRecord[]> {
+    return wait(mockState.healthRecords[petId] || []);
+  },
+
+  addHealthRecord(petId: string, record: HealthRecordInput): Promise<HealthRecord[]> {
+    const nextRecord: HealthRecord = {
+      id: `record-${petId}-${Date.now()}`,
+      petId,
+      type: record.type,
+      title: record.title,
+      issuedAt: record.issuedAt,
+      status: "pending",
+      isPrivate: true,
+      note: record.note,
+    };
+    mockState.healthRecords[petId] = [...(mockState.healthRecords[petId] || []), nextRecord];
+    syncPetProfileReviewState(petId);
+    return wait(mockState.healthRecords[petId]);
   },
 
   listSwipeQueue(request: SwipeQueueRequest): Promise<Pet[]> {

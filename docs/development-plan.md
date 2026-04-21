@@ -45,6 +45,7 @@ Deliver an internal-test-ready iOS and Android MVP in 8 weeks. The MVP must supp
 
 ## Week 3 / 第 3 周：Photos And Health Records / 照片与健康记录
 
+- Current progress: mobile photo list, mock photo creation, health record list, mock health record creation, private medical record copy, and media API boundary are in place.
 - Mobile: implement photo upload, health record upload, upload progress, and review status display.
 - Backend: implement signed upload flow, object storage integration, HealthRecord records, and private document access rules.
 - Admin: add health record review list and approve/reject actions.
