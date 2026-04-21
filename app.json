@@ -11,8 +11,7 @@
       "bundleIdentifier": "com.lovelsf.luckypets"
     },
     "android": {
-      "package": "com.lovelsf.luckypets",
-      "edgeToEdgeEnabled": true
+      "package": "com.lovelsf.luckypets"
     },
     "extra": {
       "eas": {

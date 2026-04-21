@@ -27,14 +27,22 @@ The repository now includes the start of an Expo/React Native app for iOS and An
 Install dependencies after cloning:
 
 ```bash
-npm install
+bun install
 ```
 
 Run locally:
 
 ```bash
-npm run ios
-npm run android
+bun run ios
+bun run android
+```
+
+Useful checks:
+
+```bash
+bun run typecheck
+bunx expo-doctor
+eas --version
 ```
 
 The app entry is `App.tsx`. Store build configuration starts in `app.json` and `eas.json`.
