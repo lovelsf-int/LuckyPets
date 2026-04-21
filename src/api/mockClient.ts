@@ -424,6 +424,7 @@ export const mockApiClient: ApiClient = {
     if (!mockState.blockedOwners.includes(ownerId)) {
       mockState.blockedOwners.push(ownerId);
     }
+    mockState.matches = mockState.matches.filter((name) => name !== ownerId);
     return wait(undefined);
   },
 

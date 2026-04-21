@@ -99,6 +99,20 @@ Matching queue contract:
 - 队列会过滤已经配对、跳过、拉黑或解除匹配的宠物。
 - 移动端会根据空队列原因区分筛选过窄、今日已看完和安全关系过滤。
 
+Safety actions contract:
+
+- `report` creates a moderation request for a pet, owner, message, or conversation.
+- `blockOwner` prevents the target from returning to matches, conversations, or recommendations.
+- `unmatch` removes the active conversation without treating it as a moderation report.
+- The mobile UI keeps report as a lower-friction action and makes block/unmatch explicit destructive actions.
+
+安全操作契约：
+
+- `report` 会为宠物、家长、消息或会话创建审核请求。
+- `blockOwner` 会阻止目标再次出现在配对、会话或推荐中。
+- `unmatch` 会移除当前会话，但不会自动视为审核举报。
+- 移动端把举报作为低门槛动作展示，同时将拉黑/解除匹配作为明确的破坏性动作处理。
+
 ## Release Path
 
 1. Finish native MVP screens.

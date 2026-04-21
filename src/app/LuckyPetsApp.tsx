@@ -61,8 +61,13 @@ export function LuckyPetsApp() {
           matches={state.matchedPets}
           selectedChat={state.selectedChat}
           profileNote={state.profile.note}
-          onSelectChat={state.setSelectedChat}
+          safetyActionState={state.safetyActionState}
+          safetyNotice={state.safetyNotice}
+          onSelectChat={state.selectChat}
           onFindMatches={() => state.setTab("match")}
+          onReport={state.reportSelectedChat}
+          onBlock={state.blockSelectedChat}
+          onUnmatch={state.unmatchSelectedChat}
         />
       ) : state.tab === "profile" ? (
         <ProfileScreen

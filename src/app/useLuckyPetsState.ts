@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { apiClient } from "../api";
-import type { AuthRequest, AuthSession, SwipeQueueMeta } from "../api";
+import type { AuthRequest, AuthSession, ReportCategory, SwipeQueueMeta } from "../api";
 import type { HealthRecord, IntentFilter, OwnerPetProfile, Pet, PetPhoto, SpeciesFilter, TabKey } from "../types";
 
 export const defaultProfile: OwnerPetProfile = {
@@ -19,6 +19,7 @@ export const defaultProfile: OwnerPetProfile = {
 };
 
 export type ProfileSaveState = "idle" | "dirty" | "saving" | "saved";
+export type SafetyActionState = "idle" | "saving" | "reported" | "blocked" | "unmatched";
 
 const defaultSwipeQueueMeta: SwipeQueueMeta = {
   totalCandidates: 0,
@@ -42,6 +43,8 @@ export function useLuckyPetsState() {
   const [queue, setQueue] = useState<Pet[]>([]);
   const [swipeQueueMeta, setSwipeQueueMeta] = useState<SwipeQueueMeta>(defaultSwipeQueueMeta);
   const [matchedPets, setMatchedPets] = useState<Pet[]>([]);
+  const [safetyActionState, setSafetyActionState] = useState<SafetyActionState>("idle");
+  const [safetyNotice, setSafetyNotice] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -125,6 +128,8 @@ export function useLuckyPetsState() {
     setSession(null);
     setTab("match");
     setSelectedChat("");
+    setSafetyActionState("idle");
+    setSafetyNotice("");
     setQueue([]);
     setSwipeQueueMeta(defaultSwipeQueueMeta);
     setMatchedPets([]);
@@ -211,6 +216,8 @@ export function useLuckyPetsState() {
     const likedPet = currentPet;
     setMatchedPets((value) => (value.some((pet) => pet.name === likedPet.name) ? value : [...value, likedPet]));
     setSelectedChat(likedPet.name);
+    setSafetyActionState("idle");
+    setSafetyNotice("");
     removePetFromQueue(likedPet.name);
     apiClient.likePet(likedPet.name).then(setMatchedPets).catch(() => {
       setErrorMessage("喜欢操作暂时没有同步成功，请稍后重试。");
@@ -219,7 +226,76 @@ export function useLuckyPetsState() {
 
   function openChat(petName: string) {
     setSelectedChat(petName);
+    setSafetyActionState("idle");
+    setSafetyNotice("");
     setTab("messages");
+  }
+
+  function selectChat(petName: string) {
+    setSelectedChat(petName);
+    setSafetyActionState("idle");
+    setSafetyNotice("");
+  }
+
+  function getActiveChatPetName() {
+    return selectedChat || matchedPets[0]?.name || "";
+  }
+
+  async function reportSelectedChat(category: ReportCategory = "harassment") {
+    const petName = getActiveChatPetName();
+    if (!petName) return;
+
+    try {
+      setSafetyActionState("saving");
+      setErrorMessage("");
+      await apiClient.report({
+        targetType: "conversation",
+        targetId: `conversation-${petName}`,
+        category,
+        details: `移动端快捷举报：${petName} 的会话需要审核。`,
+      });
+      setSafetyActionState("reported");
+      setSafetyNotice("举报已提交，审核前建议先暂停线下见面。");
+    } catch {
+      setSafetyActionState("idle");
+      setErrorMessage("举报暂时没有提交成功，请稍后重试。");
+    }
+  }
+
+  async function blockSelectedChat() {
+    const petName = getActiveChatPetName();
+    if (!petName) return;
+
+    try {
+      setSafetyActionState("saving");
+      setErrorMessage("");
+      await apiClient.blockOwner(petName);
+      setMatchedPets((value) => value.filter((pet) => pet.name !== petName));
+      setSelectedChat("");
+      setSafetyActionState("blocked");
+      setSafetyNotice("已拉黑，对方不会再次进入推荐或会话。");
+    } catch {
+      setSafetyActionState("idle");
+      setErrorMessage("拉黑暂时没有成功，请稍后重试。");
+    }
+  }
+
+  async function unmatchSelectedChat() {
+    const petName = getActiveChatPetName();
+    if (!petName) return;
+
+    try {
+      setSafetyActionState("saving");
+      setErrorMessage("");
+      await apiClient.unmatch(petName);
+      setMatchedPets((value) => value.filter((pet) => pet.name !== petName));
+      setSelectedChat("");
+      setSafetyActionState("unmatched");
+      setSafetyNotice("已解除匹配，这段会话不会继续展示。");
+    } catch {
+      setSafetyActionState("idle");
+      setErrorMessage("解除匹配暂时没有成功，请稍后重试。");
+    }
   }
 
   function updateProfile(nextProfile: OwnerPetProfile) {
@@ -404,7 +480,9 @@ export function useLuckyPetsState() {
     currentPet,
     matchedPets,
     selectedChat,
-    setSelectedChat,
+    selectChat,
+    safetyActionState,
+    safetyNotice,
     profile,
     petProfiles,
     draftProfile,
@@ -428,5 +506,8 @@ export function useLuckyPetsState() {
     moveNext,
     likeCurrentPet,
     openChat,
+    reportSelectedChat,
+    blockSelectedChat,
+    unmatchSelectedChat,
   };
 }

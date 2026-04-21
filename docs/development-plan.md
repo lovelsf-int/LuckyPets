@@ -72,6 +72,8 @@ Deliver an internal-test-ready iOS and Android MVP in 8 weeks. The MVP must supp
 
 ## Week 5 / 第 5 周：Messages And Safety Actions / 消息与安全操作
 
+- Current progress: mobile messages now expose report, block, and unmatch actions; report submits a moderation request, while block and unmatch remove the conversation locally and update the mock API state.
+- 当前进展：移动端消息页已提供举报、拉黑和解除匹配操作；举报会提交审核请求，拉黑和解除匹配会移除本地会话并同步 mock API 状态。
 - Mobile: implement conversation list, chat room, safety prompts, report, block, and unmatch.
 - Backend: implement Conversation, Message, Report, block list, unmatch, and message visibility rules.
 - Admin: add report review queue with categories and status transitions.
