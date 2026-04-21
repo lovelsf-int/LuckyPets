@@ -15,7 +15,22 @@ The current app shell keeps the first product loop small:
 ```text
 App.tsx
 src/
+  app/
+    LuckyPetsApp.tsx
+    useLuckyPetsState.ts
+  components/
+    AppButton.tsx
+    EmptyState.tsx
+    FilterRow.tsx
+    ScreenHeading.tsx
+    SectionCard.tsx
+    TagList.tsx
+    screenStyles.ts
   data/pets.ts
+  features/
+    matching/MatchScreen.tsx
+    messages/MessagesScreen.tsx
+    profile/ProfileScreen.tsx
   theme.ts
   types.ts
 app.json

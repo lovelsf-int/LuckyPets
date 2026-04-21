@@ -1,0 +1,140 @@
+import React from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+import { MatchScreen } from "../features/matching/MatchScreen";
+import { MessagesScreen } from "../features/messages/MessagesScreen";
+import { ProfileScreen } from "../features/profile/ProfileScreen";
+import { colors, spacing } from "../theme";
+import type { TabKey } from "../types";
+import { useLuckyPetsState } from "./useLuckyPetsState";
+
+const tabs: Array<[TabKey, string]> = [
+  ["match", "匹配"],
+  ["messages", "消息"],
+  ["profile", "我的宠物"],
+];
+
+export function LuckyPetsApp() {
+  const state = useLuckyPetsState();
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar style="dark" />
+      <View style={styles.header}>
+        <View style={styles.brandMark}>
+          <Text style={styles.brandLetters}>LP</Text>
+        </View>
+        <View>
+          <Text style={styles.brandName}>LuckyPets</Text>
+          <Text style={styles.brandSubcopy}>宠物交友与安全匹配</Text>
+        </View>
+      </View>
+
+      <View style={styles.tabs}>
+        {tabs.map(([key, label]) => (
+          <Pressable
+            key={key}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: state.tab === key }}
+            style={[styles.tabButton, state.tab === key && styles.tabButtonActive]}
+            onPress={() => state.setTab(key)}
+          >
+            <Text style={[styles.tabText, state.tab === key && styles.tabTextActive]}>{label}</Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {state.tab === "messages" ? (
+        <MessagesScreen
+          matches={state.matchedPets}
+          selectedChat={state.selectedChat}
+          profileNote={state.profile.note}
+          onSelectChat={state.setSelectedChat}
+          onFindMatches={() => state.setTab("match")}
+        />
+      ) : state.tab === "profile" ? (
+        <ProfileScreen profile={state.profile} onChangeProfile={state.setProfile} />
+      ) : (
+        <MatchScreen
+          profile={state.profile}
+          pet={state.currentPet}
+          queueLength={state.queue.length}
+          queueIndex={state.index}
+          intent={state.intent}
+          species={state.species}
+          matches={state.matchedPets}
+          onSetIntent={state.setIntentFilter}
+          onSetSpecies={state.setSpeciesFilter}
+          onPass={state.moveNext}
+          onLike={state.likeCurrentPet}
+          onOpenChat={state.openChat}
+        />
+      )}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[2],
+    paddingHorizontal: spacing[3],
+    paddingTop: spacing[2],
+    paddingBottom: spacing[1],
+  },
+  brandMark: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: 42,
+    height: 42,
+    borderRadius: 8,
+    backgroundColor: colors.accent,
+  },
+  brandLetters: {
+    color: colors.white,
+    fontWeight: "800",
+  },
+  brandName: {
+    color: colors.text,
+    fontSize: 20,
+    fontWeight: "800",
+  },
+  brandSubcopy: {
+    color: colors.muted,
+    marginTop: 2,
+  },
+  tabs: {
+    flexDirection: "row",
+    gap: spacing[1],
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+  },
+  tabButton: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 38,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  tabButtonActive: {
+    borderColor: colors.accent,
+    backgroundColor: colors.accent,
+  },
+  tabText: {
+    color: colors.text,
+    fontWeight: "700",
+  },
+  tabTextActive: {
+    color: colors.white,
+  },
+});
