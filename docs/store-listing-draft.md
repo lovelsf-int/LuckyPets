@@ -59,7 +59,7 @@ Draft disclosure areas:
 
 ## Required URLs Before Submission / 提交前必备链接
 
-- Privacy policy URL / 隐私政策链接：TBD
-- Terms of service URL / 服务条款链接：TBD
-- Support URL or email / 支持链接或邮箱：TBD
+- Privacy policy URL / 隐私政策链接：TBD public URL; draft: [Privacy Policy Draft](./privacy-policy.md)
+- Terms of service URL / 服务条款链接：TBD public URL; draft: [Terms Of Service Draft](./terms-of-service.md)
+- Support URL or email / 支持链接或邮箱：18868876912@163.com; support draft: [Support](./support.md)
 - Marketing URL / 官网或介绍页：optional for MVP

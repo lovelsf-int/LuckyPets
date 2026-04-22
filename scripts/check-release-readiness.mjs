@@ -116,21 +116,27 @@ if (easJson) {
 
 [
   "docs/internal-testing.md",
+  "docs/privacy-policy.md",
+  "docs/release-candidate-checklist.md",
   "docs/store-listing-draft.md",
   "docs/store-readiness.md",
+  "docs/support.md",
+  "docs/terms-of-service.md",
   "docs/development-plan.md",
 ].forEach(checkRequiredDoc);
 
 if (exists("docs/store-listing-draft.md")) {
   const storeDraft = readText("docs/store-listing-draft.md");
-  if (storeDraft.includes("Privacy policy URL / 隐私政策链接：TBD")) {
-    warn("Privacy policy URL is still TBD.");
+  if (storeDraft.includes("Privacy policy URL / 隐私政策链接：TBD public URL")) {
+    warn("Privacy policy draft exists, but a public URL is still required before store submission.");
   }
-  if (storeDraft.includes("Terms of service URL / 服务条款链接：TBD")) {
-    warn("Terms of service URL is still TBD.");
+  if (storeDraft.includes("Terms of service URL / 服务条款链接：TBD public URL")) {
+    warn("Terms of service draft exists, but a public URL is still required before store submission.");
   }
   if (storeDraft.includes("Support URL or email / 支持链接或邮箱：TBD")) {
     warn("Support URL or email is still TBD.");
+  } else if (storeDraft.includes("Support URL or email / 支持链接或邮箱：")) {
+    pass("Support contact is documented");
   }
 }
 

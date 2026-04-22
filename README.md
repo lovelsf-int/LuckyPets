@@ -65,6 +65,9 @@ Supporting references:
 - [Internal Testing Runbook](docs/internal-testing.md)
 - [Store Listing Draft](docs/store-listing-draft.md)
 - [Release Candidate Checklist](docs/release-candidate-checklist.md)
+- [Privacy Policy Draft](docs/privacy-policy.md)
+- [Terms Of Service Draft](docs/terms-of-service.md)
+- [Support](docs/support.md)
 
 ## Next Build Steps
 

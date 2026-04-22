@@ -9,9 +9,9 @@ This checklist tracks what LuckyPets needs before App Store and Google Play subm
 - App icon and adaptive Android icon: configured in `app.json` and generated from `scripts/generate-app-assets.mjs`.
 - Splash screen: configured in `app.json` and generated as `assets/splash.png`.
 - Production app name and subtitle: drafted in [Store Listing Draft](./store-listing-draft.md).
-- Privacy policy URL: TBD before submission.
-- Terms of service URL: TBD before submission.
-- Support contact: TBD before submission.
+- Privacy policy URL: draft exists in [Privacy Policy Draft](./privacy-policy.md); publish a public URL before submission.
+- Terms of service URL: draft exists in [Terms Of Service Draft](./terms-of-service.md); publish a public URL before submission.
+- Support contact: provisional email and support process are documented in [Support](./support.md).
 - Account deletion flow: mock request flow exists in the mobile app.
 
 ## Safety And Moderation
