@@ -8,10 +8,11 @@
     "ios": "expo start --ios",
     "android": "expo start --android",
     "web": "expo start --web",
+    "assets:generate": "node scripts/generate-app-assets.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "expo": "~55.0.0",
+    "expo": "~55.0.17",
     "expo-status-bar": "~55.0.4",
     "react": "19.2.0",
     "react-native": "0.83.6",
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.0",
+    "pngjs": "^7.0.0",
     "typescript": "~5.9.0"
   }
 }

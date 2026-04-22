@@ -6,13 +6,13 @@ This checklist tracks what LuckyPets needs before App Store and Google Play subm
 
 - Stable iOS bundle identifier: `com.lovelsf.luckypets`
 - Stable Android package name: `com.lovelsf.luckypets`
-- App icon and adaptive Android icon.
-- Splash screen.
-- Production app name and subtitle.
-- Privacy policy URL.
-- Terms of service URL.
-- Support contact.
-- Account deletion flow.
+- App icon and adaptive Android icon: configured in `app.json` and generated from `scripts/generate-app-assets.mjs`.
+- Splash screen: configured in `app.json` and generated as `assets/splash.png`.
+- Production app name and subtitle: drafted in [Store Listing Draft](./store-listing-draft.md).
+- Privacy policy URL: TBD before submission.
+- Terms of service URL: TBD before submission.
+- Support contact: TBD before submission.
+- Account deletion flow: mock request flow exists in the mobile app.
 
 ## Safety And Moderation
 
@@ -48,11 +48,12 @@ This checklist tracks what LuckyPets needs before App Store and Google Play subm
 
 - Apple Developer account.
 - Google Play Console account.
-- Expo account and EAS project.
+- Expo account and EAS project: run `eas init`, then replace `extra.eas.projectId` in `app.json`.
 - EAS production build profile.
 - App Store Connect app record.
 - Google Play app record.
 - TestFlight testing group.
 - Google Play internal testing track.
 - Screenshots for 6.7-inch iPhone, iPad if supported, and Android phone.
-- Review notes explaining moderation and breeding safeguards.
+- Review notes explaining moderation and breeding safeguards: drafted in [Store Listing Draft](./store-listing-draft.md).
+- Internal test runbook: [Internal Testing Runbook](./internal-testing.md).

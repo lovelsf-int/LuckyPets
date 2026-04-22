@@ -3,15 +3,30 @@
     "name": "LuckyPets",
     "slug": "luckypets",
     "version": "0.1.0",
+    "description": "Pet social matching with owner-first safety, moderation, and responsible breeding gates.",
     "orientation": "portrait",
+    "icon": "./assets/app-icon.png",
     "userInterfaceStyle": "light",
     "scheme": "luckypets",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f5f7f6"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.lovelsf.luckypets"
     },
     "android": {
-      "package": "com.lovelsf.luckypets"
+      "package": "com.lovelsf.luckypets",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "monochromeImage": "./assets/adaptive-icon-monochrome.png",
+        "backgroundColor": "#087f79"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {

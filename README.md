@@ -40,6 +40,7 @@ bun run android
 Useful checks:
 
 ```bash
+bun run assets:generate
 bun run typecheck
 bunx expo-doctor
 eas --version
@@ -60,6 +61,8 @@ Supporting references:
 - [Product Roadmap](docs/product-roadmap.md)
 - [Mobile Architecture Notes](docs/mobile-architecture.md)
 - [Store Readiness Checklist](docs/store-readiness.md)
+- [Internal Testing Runbook](docs/internal-testing.md)
+- [Store Listing Draft](docs/store-listing-draft.md)
 
 ## Next Build Steps
 

@@ -102,6 +102,8 @@ Deliver an internal-test-ready iOS and Android MVP in 8 weeks. The MVP must supp
 
 ## Week 7 / 第 7 周：Internal Testing Readiness / 内测准备
 
+- Current progress: Expo app icon, Android adaptive icon, splash screen, favicon, asset generator script, internal testing runbook, and store listing draft are in place.
+- 当前进展：已配置 Expo App 图标、Android adaptive icon、启动页、favicon、资源生成脚本、内测运行手册和商店资料草稿。
 - Mobile: polish accessibility, error states, offline states, app icon, splash screen, and permission prompts.
 - Backend: harden rate limits, logging, backup, moderation audit, and production environment configuration.
 - Platform: configure EAS build profiles, TestFlight internal testing, and Google Play internal testing.
