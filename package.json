@@ -9,6 +9,7 @@
     "android": "expo start --android",
     "web": "expo start --web",
     "assets:generate": "node scripts/generate-app-assets.mjs",
+    "release:check": "node scripts/check-release-readiness.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

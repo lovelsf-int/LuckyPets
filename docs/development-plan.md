@@ -116,6 +116,8 @@ Deliver an internal-test-ready iOS and Android MVP in 8 weeks. The MVP must supp
 
 ## Week 8 / 第 8 周：QA And Release Candidate / 测试与候选版本
 
+- Current progress: release readiness script and release candidate checklist are in place; local checks now cover Expo config, EAS profiles, image assets, required docs, and store-submission warnings.
+- 当前进展：已新增候选版本检查脚本和候选版本清单；本地检查覆盖 Expo 配置、EAS profiles、图片资源、必备文档和商店提交前 warning。
 - QA: run full regression across account, profile, upload, matching, chat, report/block/unmatch, breeding review, and account deletion.
 - Mobile: fix release-blocking bugs and generate release candidate builds.
 - Backend/Admin: fix moderation and eligibility review blockers.

@@ -57,3 +57,5 @@ This checklist tracks what LuckyPets needs before App Store and Google Play subm
 - Screenshots for 6.7-inch iPhone, iPad if supported, and Android phone.
 - Review notes explaining moderation and breeding safeguards: drafted in [Store Listing Draft](./store-listing-draft.md).
 - Internal test runbook: [Internal Testing Runbook](./internal-testing.md).
+- Release candidate checklist: [Release Candidate Checklist](./release-candidate-checklist.md).
+- Local readiness command: `bun run release:check`.

@@ -42,6 +42,7 @@ Useful checks:
 ```bash
 bun run assets:generate
 bun run typecheck
+bun run release:check
 bunx expo-doctor
 eas --version
 ```
@@ -63,6 +64,7 @@ Supporting references:
 - [Store Readiness Checklist](docs/store-readiness.md)
 - [Internal Testing Runbook](docs/internal-testing.md)
 - [Store Listing Draft](docs/store-listing-draft.md)
+- [Release Candidate Checklist](docs/release-candidate-checklist.md)
 
 ## Next Build Steps
 
