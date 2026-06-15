@@ -1,5 +1,7 @@
 # LuckyPets
 
+[中文说明](README.zh-CN.md)
+
 LuckyPets is an owner-led pet matching app prototype for social introductions, playdates, and responsible breeding conversations.
 
 ## MVP Direction
